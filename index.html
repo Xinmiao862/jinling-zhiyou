@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>金陵智游 | 南京建筑Citywalk智能导览平台</title>
+    <!-- Leaflet 地图核心库 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet.heat 热力图插件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+    <!-- 图标库 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            padding: 20px;
+        }
+        /* 整体容器 */
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        /* 头部品牌区 */
+        .brand {
+            background: linear-gradient(135deg, #0b2b3b 0%, #1a4d5f 100%);
+            color: white;
+            padding: 20px 32px;
+        }
+        .brand h1 {
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        .brand h1 i {
+            margin-right: 12px;
+            color: #ffd966;
+        }
+        .brand p {
+            opacity: 0.85;
+            margin-top: 6px;
+            font-size: 0.9rem;
+        }
+        /* Tab 切换栏 */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fefefe;
+            padding: 0 32px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 15px 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            transition: all 0.2s ease;
+            color: #4a5568;
+            border-bottom: 3px solid transparent;
+        }
+        .tab-btn i {
+            margin-right: 6px;
+        }
+        .tab-btn.active {
+            color: #1a4d5f;
+            border-bottom-color: #1a4d5f;
+            background: #f8fafc;
+        }
+        /* 主要内容区 */
+        .panel {
+            display: none;
+            padding: 28px 32px;
+            animation: fade 0.25s ease;
+        }
+        .panel.active {
+            display: block;
+        }
+        @keyframes fade {
+            from { opacity: 0; transform: translateY(6px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+        /* 通用卡片样式 */
+        .card {
+            background: #f9fafb;
+            border-radius: 24px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #eef2f6;
+        }
+        .section-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin: 20px 0 12px 0;
+            color: #1a4d5f;
+            border-left: 4px solid #ffc107;
+            padding-left: 12px;
+        }
+        .btn-primary {
+            background: #1a4d5f;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        .btn-primary:hover { background: #0e3a48; }
+        .btn-secondary {
+            background: #2c7a4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+        }
+        .badge {
+            background: #e2e8f0;
+            border-radius: 24px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            display: inline-block;
+            margin: 4px;
+        }
+        .badge.gold { background: linear-gradient(135deg, #ffd966, #f0c040); color: #5a4000; }
+        .badge.locked { background: #cbd5e1; color: #64748b; opacity: 0.6; }
+        
+        /* 游客端双列布局 */
+        .user-row {
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+        .upload-card {
+            flex: 1.2;
+            min-width: 280px;
+        }
+        .result-card {
+            flex: 1.8;
+            min-width: 300px;
+            background: white;
+        }
+        .preview-area {
+            background: #eef2f6;
+            border-radius: 24px;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+        }
+        .preview-placeholder {
+            text-align: center;
+            color: #6c757d;
+            padding: 60px 20px;
+        }
+        .info-row {
+            margin-bottom: 14px;
+            border-bottom: 1px dashed #e9ecef;
+            padding-bottom: 8px;
+        }
+        .info-label {
+            font-weight: 700;
+            color: #2d3e50;
+            width: 85px;
+            display: inline-block;
+        }
+        .deep-story {
+            background: #fff8e6;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 16px;
+        }
+        
+        /* Citywalk 定制页面 */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .theme-card {
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .theme-card:hover, .theme-card.selected {
+            border-color: #1a4d5f;
+            background: #f0f7f9;
+        }
+        .theme-card i {
+            font-size: 2rem;
+            color: #1a4d5f;
+            margin-bottom: 10px;
+        }
+        .route-result {
+            margin-top: 24px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid #eef2f6;
+        }
+        
+        /* 探索打卡页面 */
+        .explore-grid {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .checkin-section {
+            flex: 1.5;
+            min-width: 300px;
+        }
+        .badge-section {
+            flex: 1;
+            min-width: 250px;
+        }
+        .checkin-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            border: 1px solid #eef2f6;
+        }
+        .checkin-card.completed {
+            background: #f0fdf4;
+            border-color: #22c55e;
+        }
+        .checkin-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .checkin-card.completed .checkin-icon {
+            background: #22c55e;
+            color: white;
+        }
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .badge-item {
+            text-align: center;
+            padding: 12px;
+            border-radius: 16px;
+            background: #f8fafc;
+        }
+        .badge-item.unlocked {
+            background: linear-gradient(135deg, #fff8e6, #ffefc2);
+        }
+        .badge-item i {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .badge-item.locked i {
+            color: #cbd5e1;
+        }
+        .badge-item.unlocked i {
+            color: #f0c040;
+        }
+        
+        /* 管理端布局 */
+        .admin-grid {
+            display: flex;
+            gap: 28px;
+            flex-wrap: wrap;
+        }
+        .map-card {
+            flex: 2;
+            min-width: 320px;
+            background: #f9fafb;
+            border-radius: 28px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+        .stats-card {
+            flex: 1.2;
+            min-width: 280px;
+        }
+        #adminMap {
+            height: 380px;
+            width: 100%;
+            background: #cbd5e1;
+        }
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #7f8c8d;
+            padding: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="brand">
+        <h1><i class="fas fa-landmark"></i> 金陵智游</h1>
+        <p>南京城市微空间发掘者 · 基于多模态AI的建筑认知与Citywalk智能导览平台</p>
+    </div>
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="user"><i class="fas fa-camera"></i> 一眼识建筑</button>
+        <button class="tab-btn" data-tab="citywalk"><i class="fas fa-route"></i> 定制Citywalk</button>
+        <button class="tab-btn" data-tab="explore"><i class="fas fa-map-marked-alt"></i> 探索打卡</button>
+        <button class="tab-btn" data-tab="admin"><i class="fas fa-chart-line"></i> 管理后台</button>
+    </div>
+    
+    <!-- 面板1：游客端 · 一眼识建筑 -->
+    <div id="userPanel" class="panel active">
+        <div class="user-row">
+            <div class="upload-card card">
+                <div class="preview-area" id="imagePreviewArea">
+                    <div class="preview-placeholder">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; opacity: 0.5; margin-bottom: 12px;"></i>
+                        <p>点击下方按钮上传南京建筑照片</p>
+                        <p style="font-size:12px">支持 JPG / PNG</p>
+                    </div>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center;">
+                    <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display: none;">
+                    <button class="btn-primary" id="uploadBtn"><i class="fas fa-folder-open"></i> 选取照片</button>
+                    <button class="btn-secondary" id="recognizeBtn"><i class="fas fa-brain"></i> 大模型识别</button>
+                </div>
+                <p style="margin-top: 16px; font-size:0.75rem; color:#6c86a3;"><i class="fas fa-info-circle"></i> 演示环境：模拟多模态大模型+南京专属RAG知识库响应</p>
+            </div>
+            <div class="result-card card">
+                <h3><i class="fas fa-scroll"></i> 识别结果</h3>
+                <div id="recogResultArea" style="margin-top: 16px;">
+                    <div class="info-row"><span class="info-label">🏛️ 建筑</span><span id="resName">—</span></div>
+                    <div class="info-row"><span class="info-label">📍 位置</span><span id="resLocation">—</span></div>
+                    <div class="info-row"><span class="info-label">📖 简介</span><span id="resIntro">等待识别</span></div>
+                    <div class="info-row"><span class="info-label">🚇 路线</span><span id="resRoute">—</span></div>
+                    <div class="info-row"><span class="info-label">💡 贴士</span><span id="resTips">—</span></div>
+                    <div class="info-row"><span class="info-label">🎯 置信度</span><span id="resConfidence">—</span></div>
+                    
+                    <div class="section-title">深度空间叙事科普</div>
+                    <div id="deepStoryArea" class="deep-story" style="display: none;">
+                        <h4 style="margin-bottom: 8px; color: #856404;"><i class="fas fa-book-open"></i> 街巷空间故事</h4>
+                        <p id="resDeepStory" style="font-size: 0.95rem; line-height: 1.6;"></p>
+                        <div style="margin-top: 12px;">
+                            <span class="badge gold">用户共建内容</span>
+                            <span class="badge">街巷历史</span>
+                        </div>
+                    </div>
+                    
+                    <button class="btn-secondary" id="addToRouteBtn" style="margin-top: 20px; display: none;"><i class="fas fa-plus"></i> 加入我的Citywalk路线</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 面板2：定制Citywalk路线 -->
+    <div id="citywalkPanel" class="panel">
+        <h3><i class="fas fa-map-signs"></i> 定制你的私人Citywalk路线</h3>
+        <p style="color: #64748b; margin-bottom: 20px;">选择主题、设置参数，AI为你智能生成专属南京步行路线</p>
+        
+        <div class="section-title">第一步：选择主题</div>
+        <div class="theme-grid">
+            <div class="theme-card" data-theme="food">
+                <i class="fas fa-utensils"></i>
+                <h4>烟火美食</h4>
+                <p style="font-size: 0.85rem; color: #64748b;">明瓦廊、科巷本地小吃</p>
+            </div>
+            <div class="theme-card" data-theme="history">
+                <i class="fas fa-landmark"></i>
+                <h4>历史建筑</h4>
+                <p style="font-size: 0.85rem; color: #64748b;">小众民国公馆、文保单位</p>
+            </div>
+            <div class="theme-card" data-theme="scenery">
+                <i class="fas fa-leaf"></i>
+                <h4>景观休闲</h4>
+                <p style="font-size: 0.85rem; color: #64748b;">梧桐大道、滨江落日</p>
+            </div>
+            <div class="theme-card" data-theme="family">
+                <i class="fas fa-child"></i>
+                <h4>亲子友好</h4>
+                <p style="font-size: 0.85rem; color: #64748b;">博物馆、低强度步道</p>
+            </div>
+        </div>
+        
+        <div class="section-title">第二步：设置参数</div>
+        <div class="card" style="margin-bottom: 20px;">
+            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">出发点 (选填)</label>
+                    <input type="text" id="startPoint" placeholder="例如：鼓楼地铁站" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">终点 (选填)</label>
+                    <input type="text" id="endPoint" placeholder="例如：老门东" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                </div>
+                <div style="flex: 0.8; min-width: 150px;">
+                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">步行时长</label>
+                    <select id="walkDuration" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
+                        <option value="1">1小时以内</option>
+                        <option value="2" selected>1-2小时</option>
+                        <option value="3">2-3小时</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn-primary" id="generateRouteBtn"><i class="fas fa-magic"></i> 智能生成路线</button>
+        
+        <div id="routeResultArea" class="route-result" style="display: none;">
+            <h4><i class="fas fa-route"></i> <span id="routeName">—</span></h4>
+            <p style="color: #64748b; margin: 8px 0;">总距离：<span id="routeDistance">—</span> | 预计时长：<span id="routeTime">—</span></p>
+            <div class="section-title">路线点位</div>
+            <div id="routePoints"></div>
+            <div class="section-title">路线故事</div>
+            <p id="routeStory" style="line-height: 1.6;"></p>
+            <button class="btn-secondary" style="margin-top: 16px;"><i class="fas fa-share-alt"></i> 分享路线</button>
+        </div>
+    </div>
+    
+    <!-- 面板3：探索打卡 -->
+    <div id="explorePanel" class="panel">
+        <div class="explore-grid">
+            <div class="checkin-section">
+                <h3><i class="fas fa-map-pin"></i> 本周隐藏打卡点</h3>
+                <p style="color: #64748b; margin-bottom: 16px;">根据上周热力数据，在颐和路片区生成1个隐藏打卡点</p>
+                
+                <div class="card">
+                    <div style="background: #fff8e6; padding: 16px; border-radius: 16px; margin-bottom: 16px;">
+                        <h4><i class="fas fa-lightbulb"></i> 线索提示</h4>
+                        <p style="margin-top: 8px;">“颐和路片区里，藏着一栋曾住过民国女作家的黄色洋房，它在江苏路与珞珈路的交叉口附近。”</p>
+                    </div>
+                    
+                    <div class="checkin-card" id="hiddenCheckin">
+                        <div class="checkin-icon"><i class="fas fa-question"></i></div>
+                        <div style="flex: 1;">
+                            <h4>❓ 未知建筑 (隐藏打卡点)</h4>
+                            <p style="color: #64748b; font-size: 0.9rem;">上传现场照片，解锁隐藏建筑</p>
+                        </div>
+                        <button class="btn-secondary" onclick="mockCheckin()">打卡解锁</button>
+                    </div>
+                </div>
+                
+                <div class="section-title">固定打卡点 (颐和路片区)</div>
+                <div class="checkin-card completed">
+                    <div class="checkin-icon"><i class="fas fa-check"></i></div>
+                    <div style="flex: 1;">
+                        <h4>颐和公馆</h4>
+                        <p style="color: #22c55e; font-size: 0.9rem;">已打卡 · 2026-05-03</p>
+                    </div>
+                </div>
+                <div class="checkin-card">
+                    <div class="checkin-icon"><i class="fas fa-building"></i></div>
+                    <div style="flex: 1;">
+                        <h4>马歇尔公馆旧址</h4>
+                        <p style="color: #64748b; font-size: 0.9rem;">未打卡</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="badge-section">
+                <h3><i class="fas fa-trophy"></i> 我的徽章</h3>
+                <div class="card">
+                    <div style="text-align: center; margin-bottom: 16px;">
+                        <div style="font-size: 2rem; font-weight: 700; color: #1a4d5f;">Lv.3</div>
+                        <div style="color: #64748b; font-size: 0.9rem;">探索等级：城市探索者</div>
+                    </div>
+                    
+                    <div class="badge-grid">
+                        <div class="badge-item unlocked">
+                            <i class="fas fa-award"></i>
+                            <div style="font-size: 0.8rem;">初来乍到</div>
+                        </div>
+                        <div class="badge-item unlocked">
+                            <i class="fas fa-utensils"></i>
+                            <div style="font-size: 0.8rem;">烟火美食家</div>
+                        </div>
+                        <div class="badge-item locked">
+                            <i class="fas fa-landmark"></i>
+                            <div style="font-size: 0.8rem;">历史发掘者</div>
+                        </div>
+                        <div class="badge-item locked">
+                            <i class="fas fa-star"></i>
+                            <div style="font-size: 0.8rem;">隐藏彩蛋</div>
+                        </div>
+                        <div class="badge-item locked">
+                            <i class="fas fa-crown"></i>
+                            <div style="font-size: 0.8rem;">街巷主理人</div>
+                        </div>
+                        <div class="badge-item locked">
+                            <i class="fas fa-users"></i>
+                            <div style="font-size: 0.8rem;">共建达人</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="section-title">我的足迹</div>
+                <div class="card">
+                    <p style="text-align: center; color: #64748b;">已探索 1 个片区<br>打卡 2 个建筑</p>
+                    <button class="btn-primary" style="width: 100%; margin-top: 12px;"><i class="fas fa-image"></i> 生成足迹海报</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 面板4：管理后台 -->
+    <div id="adminPanel" class="panel">
+        <div class="admin-grid">
+            <div class="map-card">
+                <div id="adminMap"></div>
+                <div style="padding: 8px 12px; background: #f1f5f9; font-size:0.75rem; color:#2c3e50;">
+                    <i class="fas fa-fire"></i> 路线热力图 (红黄叠加区域代表公众选择/打卡最多的步行路线)
+                </div>
+            </div>
+            <div class="stats-card card">
+                <div>
+                    <h4><i class="fas fa-database"></i> 认知盲区报表</h4>
+                    <div style="max-height: 150px; overflow-y: auto; font-size: 0.85rem;">
+                        <div style="padding: 8px 0; border-bottom: 1px solid #e2e8f0;">
+                            <strong>时间：</strong>2026-05-04 10:20<br>
+                            <strong>地点：</strong>秦淮区慧园街红砖楼 <span class="badge">模型无法识别</span>
+                        </div>
+                        <div style="padding: 8px 0;">
+                            <strong>时间：</strong>2026-05-03 15:40<br>
+                            <strong>地点：</strong>老门东小巷民居 <span class="badge">公众拍摄多但信息缺失</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="section-title"><i class="fas fa-chart-simple"></i> 公众高频建筑 TOP5</div>
+                <div style="font-size: 0.9rem;">
+                    <div style="padding: 6px 0;">1. 紫峰大厦 <span style="float: right; color: #1a4d5f;">42 次</span></div>
+                    <div style="padding: 6px 0;">2. 夫子庙 <span style="float: right; color: #1a4d5f;">38 次</span></div>
+                    <div style="padding: 6px 0;">3. 颐和公馆 <span style="float: right; color: #1a4d5f;">31 次</span></div>
+                    <div style="padding: 6px 0;">4. 中山陵 <span style="float: right; color: #1a4d5f;">25 次</span></div>
+                    <div style="padding: 6px 0;">5. 鸡鸣寺 <span style="float: right; color: #1a4d5f;">22 次</span></div>
+                </div>
+                <p class="badge" style="margin-top: 20px; display:block; text-align:center;">基于游客识别与路线选择动态生成 | 助力城市更新优先级排序</p>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        <i class="fas fa-city"></i> 金陵智游 | 南京城市微空间发掘者 · 公众兴趣驱动城市更新
+    </footer>
+</div>
+
+<script>
+    // ---------- 预设南京建筑数据库 (含街巷空间叙事) ----------
+    const BUILDING_DB = {
+        "紫峰大厦": {
+            location: "鼓楼区中山北路1号",
+            intro: "2010年建成，高450米，江苏第一高楼，SOM设计，融合南京城墙元素。",
+            route: "地铁1号线至鼓楼站，4A口出步行5分钟",
+            tips: "观光层需购票，傍晚亮灯最佳",
+            lng: 118.783, lat: 32.061,
+            deepStory: "它所在的鼓楼片区，是南京传统的城市中心。明清时期，这里是南京城的北部要塞；民国时期，这里是首都的行政中心；如今，紫峰大厦与鼓楼公园遥相呼应，成为南京老城与新城交汇的标志性节点。"
+        },
+        "颐和路民国女作家故居": {
+            location: "鼓楼区江苏路与珞珈路交叉口",
+            intro: "一栋低调的黄色洋房，曾是民国某位著名女作家在南京的寓所。",
+            route: "地铁4号线云南路站，转公交3路至江苏路",
+            tips: "现为私人住宅，请勿打扰居民，可在外部拍照打卡",
+            lng: 118.757, lat: 32.067,
+            deepStory: "颐和路片区是民国时期南京的高级住宅区，这里的每一栋洋房都藏着一段民国往事。1930年代，许多文人墨客、政要名流都曾在此居住。江苏路作为片区的主干道，见证了南京城近百年的风云变幻。"
+        },
+        "夫子庙": {
+            location: "秦淮区贡院街152号",
+            intro: "中国四大文庙之一，明清时期南京文教中心，秦淮河畔核心景观。",
+            route: "地铁3号线夫子庙站2号口，步行400米",
+            tips: "免费街区，大成殿需门票，夜晚灯会绝美",
+            lng: 118.785, lat: 32.024,
+            deepStory: "夫子庙所在的秦淮河两岸，是南京城的发源地。从六朝时期开始，这里就是南京最繁华的商业区和居住区。‘十里秦淮’不仅是一条河，更是南京城市文化的象征。"
+        }
+    };
+    
+    // 预设Citywalk主题路线数据
+    const THEME_ROUTES = {
+        food: {
+            name: "烟火美食·明瓦廊科巷寻味路线",
+            distance: "3.2km",
+            time: "1.5小时",
+            points: ["鼓楼地铁站", "明瓦廊小吃街", "丰富路", "科巷美食街", "总统府"],
+            story: "这是一条专为吃货准备的路线。从鼓楼出发，沿着明瓦廊一路向南，你可以尝到正宗的南京鸭血粉丝汤、牛肉锅贴、洪泽湖小鱼锅贴。穿过丰富路，来到科巷，这里的草鸡蛋糕、德州扒鸡、三姐酒酿都是老南京人的最爱。"
+        },
+        history: {
+            name: "历史建筑·颐和路民国公馆探秘路线",
+            distance: "2.8km",
+            time: "1.2小时",
+            points: ["云南路地铁站", "颐和公馆", "马歇尔公馆", "琅琊路", "西康路"],
+            story: "这是一条穿越民国的路线。走进颐和路片区，就像走进了一座露天的民国建筑博物馆。200多栋民国洋房，每一栋都有自己的故事。你会看到民国政要的官邸、外国使节的公馆、著名学者的故居。"
+        },
+        scenery: {
+            name: "景观休闲·滨江落日梧桐大道路线",
+            distance: "4.5km",
+            time: "2小时",
+            points: ["中山码头", "滨江步道", "下关火车主题园", "热河路", "挹江门"],
+            story: "这是一条专为摄影爱好者准备的路线。从中山码头出发，沿着滨江步道漫步，你可以看到长江的壮阔景色。傍晚时分，落日的余晖洒在江面上，是南京城最美的时刻之一。"
+        },
+        family: {
+            name: "亲子友好·博物馆公园轻松路线",
+            distance: "2.5km",
+            time: "1.5小时",
+            points: ["明故宫地铁站", "南京博物院", "午朝门公园", "西安门"],
+            story: "这是一条适合带小朋友一起走的路线。南京博物院是中国三大博物院之一，里面的民国馆特别适合拍照打卡，小朋友也能学到很多历史知识。从博物院出来，旁边的午朝门公园可以休息野餐。"
+        }
+    };
+    
+    // ---------- 全局变量与初始化 ----------
+    let currentImageFile = null;
+    let currentTheme = null;
+    let mapAdmin = null;
+    let heatLayer = null;
+    
+    // 初始化Tab切换
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            const tabId = btn.getAttribute('data-tab');
+            if (tabId === 'user') document.getElementById('userPanel').classList.add('active');
+            if (tabId === 'citywalk') document.getElementById('citywalkPanel').classList.add('active');
+            if (tabId === 'explore') document.getElementById('explorePanel').classList.add('active');
+            if (tabId === 'admin') {
+                document.getElementById('adminPanel').classList.add('active');
+                if (!mapAdmin) initAdminMap();
+                else mapAdmin.invalidateSize();
+            }
+        });
+    });
+    
+    // ---------- 面板1：建筑识别与空间叙事科普 ----------
+    const photoInput = document.getElementById('photoInput');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const recognizeBtn = document.getElementById('recognizeBtn');
+    const previewArea = document.getElementById('imagePreviewArea');
+    
+    uploadBtn.addEventListener('click', () => photoInput.click());
+    photoInput.addEventListener('change', (e) => {
+        if (e.target.files && e.target.files[0]) {
+            currentImageFile = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                previewArea.style.backgroundImage = `url(${ev.target.result})`;
+                previewArea.style.backgroundSize = 'cover';
+                previewArea.innerHTML = '';
+            };
+            reader.readAsDataURL(currentImageFile);
+        }
+    });
+    
+    recognizeBtn.addEventListener('click', async () => {
+        if (!currentImageFile) {
+            alert('请先选择一张建筑照片');
+            return;
+        }
+        recognizeBtn.disabled = true;
+        recognizeBtn.innerHTML = '<span class="loading"></span> 大模型分析中...';
+        
+        // 模拟AI识别 + RAG知识库响应
+        setTimeout(() => {
+            const buildingNames = Object.keys(BUILDING_DB);
+            const randomIndex = Math.floor(Math.random() * buildingNames.length);
+            const selectedBuilding = buildingNames[randomIndex];
+            const info = BUILDING_DB[selectedBuilding];
+            
+            document.getElementById('resName').innerText = selectedBuilding;
+            document.getElementById('resLocation').innerText = info.location;
+            document.getElementById('resIntro').innerText = info.intro;
+            document.getElementById('resRoute').innerText = info.route;
+            document.getElementById('resTips').innerText = info.tips;
+            document.getElementById('resConfidence').innerText = (Math.floor(Math.random() * 15) + 85) + '%';
+            document.getElementById('resConfidence').className = 'confidence-high';
+            
+            // 显示深度空间叙事科普
+            document.getElementById('deepStoryArea').style.display = 'block';
+            document.getElementById('resDeepStory').innerText = info.deepStory;
+            document.getElementById('addToRouteBtn').style.display = 'inline-block';
+            
+            recognizeBtn.disabled = false;
+            recognizeBtn.innerHTML = '<i class="fas fa-brain"></i> 大模型识别';
+        }, 1500);
+    });
+    
+    // ---------- 面板2：Citywalk路线定制 ----------
+    document.querySelectorAll('.theme-card').forEach(card => {
+        card.addEventListener('click', () => {
+            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            currentTheme = card.getAttribute('data-theme');
+        });
+    });
+    
+    document.getElementById('generateRouteBtn').addEventListener('click', () => {
+        if (!currentTheme) {
+            alert('请先选择一个主题');
+            return;
+        }
+        document.getElementById('generateRouteBtn').innerHTML = '<span class="loading"></span> 智能生成中...';
+        
+        // 模拟AI路线生成
+        setTimeout(() => {
+            const route = THEME_ROUTES[currentTheme];
+            document.getElementById('routeName').innerText = route.name;
+            document.getElementById('routeDistance').innerText = route.distance;
+            document.getElementById('routeTime').innerText = route.time;
+            document.getElementById('routeStory').innerText = route.story;
+            
+            let pointsHtml = '<ol style="padding-left: 20px;">';
+            route.points.forEach((p, i) => {
+                pointsHtml += `<li style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0;">${p} ${i < route.points.length - 1 ? '<i class="fas fa-arrow-down" style="color:#1a4d5f; margin-left:8px;"></i>' : ''}</li>`;
+            });
+            pointsHtml += '</ol>';
+            document.getElementById('routePoints').innerHTML = pointsHtml;
+            
+            document.getElementById('routeResultArea').style.display = 'block';
+            document.getElementById('generateRouteBtn').innerHTML = '<i class="fas fa-magic"></i> 智能生成路线';
+        }, 1200);
+    });
+    
+    // ---------- 面板3：探索打卡 ----------
+    function mockCheckin() {
+        const checkinCard = document.getElementById('hiddenCheckin');
+        checkinCard.classList.add('completed');
+        checkinCard.querySelector('.checkin-icon').innerHTML = '<i class="fas fa-check"></i>';
+        checkinCard.querySelector('h4').innerText = '颐和路民国女作家故居';
+        checkinCard.querySelector('p').innerHTML = '已打卡 · 解锁隐藏徽章！';
+        checkinCard.querySelector('button').innerText = '已解锁';
+        checkinCard.querySelector('button').disabled = true;
+        
+        // 模拟点亮徽章
+        alert('🎉 恭喜！解锁隐藏打卡点，获得「隐藏彩蛋」限定徽章！');
+    }
+    
+    // ---------- 面板4：管理后台热力图 ----------
+    function initAdminMap() {
+        mapAdmin = L.map('adminMap').setView([32.05, 118.77], 12);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap & CartoDB',
+            subdomains: 'abcd',
+            maxZoom: 18
+        }).addTo(mapAdmin);
+        
+        // 模拟路线热力数据 (线热力模拟：用密集点连成线)
+        const heatPoints = [
+            // 模拟颐和路片区路线热力
+            [32.068, 118.755, 0.8], [32.067, 118.756, 0.9], [32.066, 118.757, 1.0],
+            [32.065, 118.758, 0.9], [32.064, 118.759, 0.8],
+            // 模拟夫子庙路线热力
+            [32.024, 118.785, 0.9], [32.023, 118.786, 1.0], [32.022, 118.787, 0.9],
+            // 模拟鼓楼路线热力
+            [32.061, 118.783, 0.8], [32.060, 118.784, 0.7]
+        ];
+        
+        heatLayer = L.heatLayer(heatPoints, { radius: 30, blur: 25, maxZoom: 15, minOpacity: 0.5 });
+        heatLayer.addTo(mapAdmin);
+        
+        // 添加模拟标记
+        L.marker([32.067, 118.757]).addTo(mapAdmin).bindPopup('隐藏打卡点：民国女作家故居');
+        L.marker([32.061, 118.783]).addTo(mapAdmin).bindPopup('紫峰大厦');
+        L.marker([32.024, 118.785]).addTo(mapAdmin).bindPopup('夫子庙');
+    }
+</script>
+</body>
+</html>
