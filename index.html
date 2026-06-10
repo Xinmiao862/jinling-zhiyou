@@ -193,38 +193,6 @@
             margin-top: 16px;
         }
         
-        /* Citywalk 定制页面 */
-        .theme-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .theme-card {
-            border: 2px solid #e2e8f0;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .theme-card:hover, .theme-card.selected {
-            border-color: #1a4d5f;
-            background: #f0f7f9;
-        }
-        .theme-card i {
-            font-size: 2rem;
-            color: #1a4d5f;
-            margin-bottom: 10px;
-        }
-        .route-result {
-            margin-top: 24px;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            border: 1px solid #eef2f6;
-        }
-        
         /* 探索打卡页面 */
         .explore-grid {
             display: flex;
@@ -345,7 +313,6 @@
     </div>
     <div class="tabs">
         <button class="tab-btn active" data-tab="user"><i class="fas fa-camera"></i> 一眼识建筑</button>
-        <button class="tab-btn" data-tab="citywalk"><i class="fas fa-route"></i> 定制Citywalk</button>
         <button class="tab-btn" data-tab="explore"><i class="fas fa-map-marked-alt"></i> 探索打卡</button>
         <button class="tab-btn" data-tab="admin"><i class="fas fa-chart-line"></i> 管理后台</button>
     </div>
@@ -388,77 +355,13 @@
                         </div>
                     </div>
                     
-                    <button class="btn-secondary" id="addToRouteBtn" style="margin-top: 20px; display: none;"><i class="fas fa-plus"></i> 加入我的Citywalk路线</button>
+                    <button class="btn-secondary" id="addToRouteBtn" style="margin-top: 20px; display: none;"><i class="fas fa-plus"></i> 加入我的收藏</button>
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- 面板2：定制Citywalk路线 -->
-    <div id="citywalkPanel" class="panel">
-        <h3><i class="fas fa-map-signs"></i> 定制你的私人Citywalk路线</h3>
-        <p style="color: #64748b; margin-bottom: 20px;">选择主题、设置参数，AI为你智能生成专属南京步行路线</p>
-        
-        <div class="section-title">第一步：选择主题</div>
-        <div class="theme-grid">
-            <div class="theme-card" data-theme="food">
-                <i class="fas fa-utensils"></i>
-                <h4>烟火美食</h4>
-                <p style="font-size: 0.85rem; color: #64748b;">明瓦廊、科巷本地小吃</p>
-            </div>
-            <div class="theme-card" data-theme="history">
-                <i class="fas fa-landmark"></i>
-                <h4>历史建筑</h4>
-                <p style="font-size: 0.85rem; color: #64748b;">小众民国公馆、文保单位</p>
-            </div>
-            <div class="theme-card" data-theme="scenery">
-                <i class="fas fa-leaf"></i>
-                <h4>景观休闲</h4>
-                <p style="font-size: 0.85rem; color: #64748b;">梧桐大道、滨江落日</p>
-            </div>
-            <div class="theme-card" data-theme="family">
-                <i class="fas fa-child"></i>
-                <h4>亲子友好</h4>
-                <p style="font-size: 0.85rem; color: #64748b;">博物馆、低强度步道</p>
-            </div>
-        </div>
-        
-        <div class="section-title">第二步：设置参数</div>
-        <div class="card" style="margin-bottom: 20px;">
-            <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">出发点 (选填)</label>
-                    <input type="text" id="startPoint" placeholder="例如：鼓楼地铁站" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">终点 (选填)</label>
-                    <input type="text" id="endPoint" placeholder="例如：老门东" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                </div>
-                <div style="flex: 0.8; min-width: 150px;">
-                    <label style="font-weight: 600; display: block; margin-bottom: 8px;">步行时长</label>
-                    <select id="walkDuration" style="width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 12px;">
-                        <option value="1">1小时以内</option>
-                        <option value="2" selected>1-2小时</option>
-                        <option value="3">2-3小时</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-        
-        <button class="btn-primary" id="generateRouteBtn"><i class="fas fa-magic"></i> 智能生成路线</button>
-        
-        <div id="routeResultArea" class="route-result" style="display: none;">
-            <h4><i class="fas fa-route"></i> <span id="routeName">—</span></h4>
-            <p style="color: #64748b; margin: 8px 0;">总距离：<span id="routeDistance">—</span> | 预计时长：<span id="routeTime">—</span></p>
-            <div class="section-title">路线点位</div>
-            <div id="routePoints"></div>
-            <div class="section-title">路线故事</div>
-            <p id="routeStory" style="line-height: 1.6;"></p>
-            <button class="btn-secondary" style="margin-top: 16px;"><i class="fas fa-share-alt"></i> 分享路线</button>
-        </div>
-    </div>
-    
-    <!-- 面板3：探索打卡 -->
+    <!-- 面板2：探索打卡 -->
     <div id="explorePanel" class="panel">
         <div class="explore-grid">
             <div class="checkin-section">
@@ -543,7 +446,7 @@
         </div>
     </div>
     
-    <!-- 面板4：管理后台 -->
+    <!-- 面板3：管理后台 -->
     <div id="adminPanel" class="panel">
         <div class="admin-grid">
             <div class="map-card">
@@ -583,7 +486,6 @@
         <i class="fas fa-city"></i> 金陵智游 | 南京城市微空间发掘者 · 公众兴趣驱动城市更新
     </footer>
 </div>
-
 <script>
     // ---------- 预设南京建筑数据库 (含街巷空间叙事) ----------
     const BUILDING_DB = {
@@ -613,41 +515,8 @@
         }
     };
     
-    // 预设Citywalk主题路线数据
-    const THEME_ROUTES = {
-        food: {
-            name: "烟火美食·明瓦廊科巷寻味路线",
-            distance: "3.2km",
-            time: "1.5小时",
-            points: ["鼓楼地铁站", "明瓦廊小吃街", "丰富路", "科巷美食街", "总统府"],
-            story: "这是一条专为吃货准备的路线。从鼓楼出发，沿着明瓦廊一路向南，你可以尝到正宗的南京鸭血粉丝汤、牛肉锅贴、洪泽湖小鱼锅贴。穿过丰富路，来到科巷，这里的草鸡蛋糕、德州扒鸡、三姐酒酿都是老南京人的最爱。"
-        },
-        history: {
-            name: "历史建筑·颐和路民国公馆探秘路线",
-            distance: "2.8km",
-            time: "1.2小时",
-            points: ["云南路地铁站", "颐和公馆", "马歇尔公馆", "琅琊路", "西康路"],
-            story: "这是一条穿越民国的路线。走进颐和路片区，就像走进了一座露天的民国建筑博物馆。200多栋民国洋房，每一栋都有自己的故事。你会看到民国政要的官邸、外国使节的公馆、著名学者的故居。"
-        },
-        scenery: {
-            name: "景观休闲·滨江落日梧桐大道路线",
-            distance: "4.5km",
-            time: "2小时",
-            points: ["中山码头", "滨江步道", "下关火车主题园", "热河路", "挹江门"],
-            story: "这是一条专为摄影爱好者准备的路线。从中山码头出发，沿着滨江步道漫步，你可以看到长江的壮阔景色。傍晚时分，落日的余晖洒在江面上，是南京城最美的时刻之一。"
-        },
-        family: {
-            name: "亲子友好·博物馆公园轻松路线",
-            distance: "2.5km",
-            time: "1.5小时",
-            points: ["明故宫地铁站", "南京博物院", "午朝门公园", "西安门"],
-            story: "这是一条适合带小朋友一起走的路线。南京博物院是中国三大博物院之一，里面的民国馆特别适合拍照打卡，小朋友也能学到很多历史知识。从博物院出来，旁边的午朝门公园可以休息野餐。"
-        }
-    };
-    
     // ---------- 全局变量与初始化 ----------
     let currentImageFile = null;
-    let currentTheme = null;
     let mapAdmin = null;
     let heatLayer = null;
     
@@ -659,7 +528,6 @@
             btn.classList.add('active');
             const tabId = btn.getAttribute('data-tab');
             if (tabId === 'user') document.getElementById('userPanel').classList.add('active');
-            if (tabId === 'citywalk') document.getElementById('citywalkPanel').classList.add('active');
             if (tabId === 'explore') document.getElementById('explorePanel').classList.add('active');
             if (tabId === 'admin') {
                 document.getElementById('adminPanel').classList.add('active');
@@ -722,43 +590,7 @@
         }, 1500);
     });
     
-    // ---------- 面板2：Citywalk路线定制 ----------
-    document.querySelectorAll('.theme-card').forEach(card => {
-        card.addEventListener('click', () => {
-            document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
-            card.classList.add('selected');
-            currentTheme = card.getAttribute('data-theme');
-        });
-    });
-    
-    document.getElementById('generateRouteBtn').addEventListener('click', () => {
-        if (!currentTheme) {
-            alert('请先选择一个主题');
-            return;
-        }
-        document.getElementById('generateRouteBtn').innerHTML = '<span class="loading"></span> 智能生成中...';
-        
-        // 模拟AI路线生成
-        setTimeout(() => {
-            const route = THEME_ROUTES[currentTheme];
-            document.getElementById('routeName').innerText = route.name;
-            document.getElementById('routeDistance').innerText = route.distance;
-            document.getElementById('routeTime').innerText = route.time;
-            document.getElementById('routeStory').innerText = route.story;
-            
-            let pointsHtml = '<ol style="padding-left: 20px;">';
-            route.points.forEach((p, i) => {
-                pointsHtml += `<li style="padding: 6px 0; border-bottom: 1px dashed #e2e8f0;">${p} ${i < route.points.length - 1 ? '<i class="fas fa-arrow-down" style="color:#1a4d5f; margin-left:8px;"></i>' : ''}</li>`;
-            });
-            pointsHtml += '</ol>';
-            document.getElementById('routePoints').innerHTML = pointsHtml;
-            
-            document.getElementById('routeResultArea').style.display = 'block';
-            document.getElementById('generateRouteBtn').innerHTML = '<i class="fas fa-magic"></i> 智能生成路线';
-        }, 1200);
-    });
-    
-    // ---------- 面板3：探索打卡 ----------
+    // ---------- 面板2：探索打卡 ----------
     function mockCheckin() {
         const checkinCard = document.getElementById('hiddenCheckin');
         checkinCard.classList.add('completed');
@@ -772,7 +604,7 @@
         alert('🎉 恭喜！解锁隐藏打卡点，获得「隐藏彩蛋」限定徽章！');
     }
     
-    // ---------- 面板4：管理后台热力图 ----------
+    // ---------- 面板3：管理后台热力图 ----------
     function initAdminMap() {
         mapAdmin = L.map('adminMap').setView([32.05, 118.77], 12);
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
