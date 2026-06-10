@@ -14,10 +14,39 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
         body { 
             padding: 20px; 
-            max-width: 600px; 
+            max-width: 800px; 
             margin: 0 auto; 
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
+        }
+        /* 板块切换按钮样式 */
+        .tab-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 16px 0;
+            text-align: center;
+            border: none;
+            background: #f8f9fa;
+            font-size: 16px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #e9ecef;
         }
         /* 恢复原卡片阴影和圆角设计 */
         .card { 
@@ -121,6 +150,8 @@
             font-size: 15px; 
             color: #444;
             padding-left: 26px;
+            /* 未识别时的占位样式 */
+            color: #adb5bd;
         }
         .confidence-high { color: #07c160; font-weight: bold; }
         .confidence-medium { color: #ff9500; font-weight: bold; }
@@ -183,7 +214,7 @@
             display: none;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
-        /* 恢复原有的两个模块（探索打卡+管理后台入口） */
+        /* 模块卡片样式 */
         .module-card {
             display: flex;
             align-items: center;
@@ -224,6 +255,13 @@
             font-size: 13px;
             color: #6c757d;
         }
+        /* 板块容器（默认只显示第一个） */
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
         /* 底部版权信息 */
         .footer {
             text-align: center;
@@ -235,66 +273,109 @@
     </style>
 </head>
 <body>
-    <!-- 模块一：建筑识别 -->
-    <div class="card">
-        <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
-        <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display: none;">
-        <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">
-            <i class="fa fa-camera"></i> 上传建筑照片
-        </button>
-        <div class="preview-area" id="imagePreviewArea">
-            <div class="preview-placeholder">
-                <i class="fa fa-picture-o"></i>
-                <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-                <p style="font-size:13px; margin-top: 8px;">支持 JPG / PNG 格式，最大10MB</p>
+    <!-- 板块切换按钮 -->
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="tab1">建筑识别</button>
+        <button class="tab-btn" data-tab="tab2">探索颐和路</button>
+        <button class="tab-btn" data-tab="tab3">更多功能</button>
+    </div>
+
+    <!-- 第一个板块：建筑识别（默认显示） -->
+    <div class="tab-content active" id="tab1">
+        <div class="card">
+            <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
+            <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display: none;">
+            <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">
+                <i class="fa fa-camera"></i> 上传建筑照片
+            </button>
+            <div class="preview-area" id="imagePreviewArea">
+                <div class="preview-placeholder">
+                    <i class="fa fa-picture-o"></i>
+                    <p>点击上方按钮上传南京颐和路片区建筑照片</p>
+                    <p style="font-size:13px; margin-top: 8px;">支持 JPG / PNG 格式，最大10MB</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 错误提示区域 -->
+        <div class="error-tip" id="errorTipArea" style="display: none;">
+            <h3 id="errorTitle">该建筑不在颐和路片区哦~</h3>
+            <p id="errorDesc">我们来看看其他建筑吧！</p>
+            <button class="back-btn" onclick="goBackHome()">
+                <i class="fa fa-home"></i> 立即返回
+            </button>
+        </div>
+
+        <!-- 识别结果区域（始终显示，未识别时为空） -->
+        <div class="card" id="resultCard">
+            <h3 class="title">📋 识别结果</h3>
+            <div class="result-area" id="resultContent">
+                <!-- 初始空内容 -->
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-building"></i> 建筑名称</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-map-marker"></i> 所在位置</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-file-text-o"></i> 建筑简介</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-paint-brush"></i> 建筑特征</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-history"></i> 历史沿革</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-bullseye"></i> 识别置信度</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-lightbulb-o"></i> 名人趣事</div>
+                    <div class="field-content">--</div>
+                </div>
+            </div>
+            <!-- 高德地图容器（暂时隐藏，需要时取消注释） -->
+            <!-- <div id="mapContainer"></div> -->
+        </div>
+    </div>
+
+    <!-- 第二个板块：探索颐和路 -->
+    <div class="tab-content" id="tab2">
+        <div class="card">
+            <h3 class="title">🗺️ 探索颐和路</h3>
+            <div class="module-card" onclick="alert('打卡功能即将上线，敬请期待~')">
+                <div class="module-icon module-explore">
+                    <i class="fa fa-map-marker"></i>
+                </div>
+                <div class="module-info">
+                    <h4>打卡集徽章</h4>
+                    <p>打卡特色建筑，收集专属民国徽章</p>
+                </div>
+                <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
             </div>
         </div>
     </div>
 
-    <!-- 错误提示区域 -->
-    <div class="error-tip" id="errorTipArea" style="display: none;">
-        <h3 id="errorTitle">该建筑不在颐和路片区哦~</h3>
-        <p id="errorDesc">我们来看看其他建筑吧！</p>
-        <button class="back-btn" onclick="goBackHome()">
-            <i class="fa fa-home"></i> 立即返回
-        </button>
-    </div>
-
-    <!-- 识别结果区域 -->
-    <div class="card" id="resultCard" style="display: none;">
-        <h3 class="title">📋 识别结果</h3>
-        <div class="result-area" id="resultContent"></div>
-        <!-- 高德地图容器（暂时隐藏，需要时取消注释） -->
-        <!-- <div id="mapContainer"></div> -->
-    </div>
-
-    <!-- 模块二：探索打卡（仅保留打卡集徽章） -->
-    <div class="card">
-        <h3 class="title">🗺️ 探索颐和路</h3>
-        <div class="module-card" onclick="alert('打卡功能即将上线，敬请期待~')">
-            <div class="module-icon module-explore">
-                <i class="fa fa-map-marker"></i>
+    <!-- 第三个板块：更多功能 -->
+    <div class="tab-content" id="tab3">
+        <div class="card">
+            <h3 class="title">⚙️ 更多功能</h3>
+            <div class="module-card" onclick="alert('管理后台仅对管理员开放')">
+                <div class="module-icon module-admin">
+                    <i class="fa fa-cog"></i>
+                </div>
+                <div class="module-info">
+                    <h4>管理后台</h4>
+                    <p>数据统计、内容管理、用户反馈</p>
+                </div>
+                <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
             </div>
-            <div class="module-info">
-                <h4>打卡集徽章</h4>
-                <p>打卡特色建筑，收集专属民国徽章</p>
-            </div>
-            <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
-        </div>
-    </div>
-
-    <!-- 模块三：管理后台入口（保留原界面） -->
-    <div class="card">
-        <h3 class="title">⚙️ 更多功能</h3>
-        <div class="module-card" onclick="alert('管理后台仅对管理员开放')">
-            <div class="module-icon module-admin">
-                <i class="fa fa-cog"></i>
-            </div>
-            <div class="module-info">
-                <h4>管理后台</h4>
-                <p>数据统计、内容管理、用户反馈</p>
-            </div>
-            <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
         </div>
     </div>
 
@@ -326,6 +407,19 @@
         let streetDB = [];
         let currentBuilding = null;
         let map = null;
+
+        // 板块切换逻辑
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // 移除所有激活状态
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                // 激活当前板块
+                this.classList.add('active');
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
 
         // 页面加载时自动下载知识库
         window.onload = async () => {
@@ -382,12 +476,10 @@
 
         // 核心识别逻辑（完全去掉GPS识别，仅靠特征匹配）
         async function startRecognition(file) {
-            const resultCard = document.getElementById('resultCard');
             const errorTipArea = document.getElementById('errorTipArea');
             const resultContent = document.getElementById('resultContent');
             
             // 重置显示
-            resultCard.style.display = 'none';
             errorTipArea.style.display = 'none';
             resultContent.innerHTML = `
                 <div class="loading">
@@ -395,7 +487,6 @@
                     <p>正在识别建筑特征...</p>
                 </div>
             `;
-            resultCard.style.display = 'block';
 
             try {
                 // 第一步：用Coze多模态API提取照片中的建筑特征
@@ -407,23 +498,25 @@
                 
                 // 第三步：处理匹配结果
                 if (!matchResult.isInArea) {
-                    // 非颐和路片区，显示提示并自动跳转
-                    resultCard.style.display = 'none';
+                    // 非颐和路片区，显示提示
                     showErrorTip("该建筑不在颐和路片区哦~", "我们来看看其他建筑吧！");
+                    // 重置识别结果为初始空状态
+                    resetResultContent();
                     return;
                 }
 
                 if (!matchResult.building) {
-                    // 在片区内但无匹配建筑，显示提示并自动跳转
-                    resultCard.style.display = 'none';
+                    // 在片区内但无匹配建筑，显示提示
                     showErrorTip("这栋建筑在颐和路附近", "小游正在努力补充相关信息哦！敬请期待~");
+                    // 重置识别结果为初始空状态
+                    resetResultContent();
                     return;
                 }
 
                 // 匹配成功，显示识别结果
                 currentBuilding = matchResult.building;
                 renderResult(currentBuilding, matchResult.confidence);
-                resultCard.style.display = 'block';
+                errorTipArea.style.display = 'none';
 
                 // 高德地图定位（暂时注释，需要时取消注释）
                 // initMap(currentBuilding.gcj_lng, currentBuilding.gcj_lat, currentBuilding.name);
@@ -437,6 +530,41 @@
                     </div>
                 `;
             }
+        }
+
+        // 重置识别结果为初始空状态
+        function resetResultContent() {
+            const resultContent = document.getElementById('resultContent');
+            resultContent.innerHTML = `
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-building"></i> 建筑名称</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-map-marker"></i> 所在位置</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-file-text-o"></i> 建筑简介</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-paint-brush"></i> 建筑特征</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-history"></i> 历史沿革</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-bullseye"></i> 识别置信度</div>
+                    <div class="field-content">--</div>
+                </div>
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-lightbulb-o"></i> 名人趣事</div>
+                    <div class="field-content">--</div>
+                </div>
+            `;
         }
 
         // 用Coze API提取建筑特征
@@ -551,23 +679,23 @@
             let html = `
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-building"></i> 建筑名称</div>
-                    <div class="field-content">${building.name}</div>
+                    <div class="field-content" style="color: #444;">${building.name || '--'}</div>
                 </div>
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-map-marker"></i> 所在位置</div>
-                    <div class="field-content">${building.address || '暂无位置信息'}</div>
+                    <div class="field-content" style="color: #444;">${building.address || '--'}</div>
                 </div>
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-file-text-o"></i> 建筑简介</div>
-                    <div class="field-content">${building.简介 || '暂无简介'}</div>
+                    <div class="field-content" style="color: #444;">${building.简介 || '--'}</div>
                 </div>
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-paint-brush"></i> 建筑特征</div>
-                    <div class="field-content">${building.建筑特征 || '暂无特征信息'}</div>
+                    <div class="field-content" style="color: #444;">${building.建筑特征 || '--'}</div>
                 </div>
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-history"></i> 历史沿革</div>
-                    <div class="field-content">${building.历史沿革 || '暂无历史信息'}</div>
+                    <div class="field-content" style="color: #444;">${building.历史沿革 || '--'}</div>
                 </div>
                 <div class="result-field">
                     <div class="field-label"><i class="fa fa-bullseye"></i> 识别置信度</div>
@@ -575,20 +703,18 @@
                 </div>
             `;
 
-            // 有趣事就显示，没有就不显示
-            if (building.名人趣事 && building.名人趣事.trim().length > 0) {
-                html += `
-                    <div class="result-field">
-                        <div class="field-label"><i class="fa fa-lightbulb-o"></i> 名人趣事</div>
-                        <div class="field-content">${building.名人趣事}</div>
-                    </div>
-                `;
-            }
+            // 有趣事就显示，没有就显示--
+            html += `
+                <div class="result-field">
+                    <div class="field-label"><i class="fa fa-lightbulb-o"></i> 名人趣事</div>
+                    <div class="field-content" style="color: #444;">${building.名人趣事 || '--'}</div>
+                </div>
+            `;
 
             resultContent.innerHTML = html;
         }
 
-        // 显示错误提示并自动跳转
+        // 显示错误提示
         function showErrorTip(title, desc) {
             const errorTipArea = document.getElementById('errorTipArea');
             const errorTitle = document.getElementById('errorTitle');
@@ -598,9 +724,9 @@
             errorDesc.innerText = desc;
             errorTipArea.style.display = 'block';
 
-            // 3秒后自动跳转
+            // 3秒后自动隐藏错误提示
             setTimeout(() => {
-                goBackHome();
+                errorTipArea.style.display = 'none';
             }, 3000);
         }
 
