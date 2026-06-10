@@ -4,47 +4,249 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>金陵智游 - 南京颐和路建筑识别</title>
-    <!-- 必须的第三方库 -->
+    <!-- 修复CDN依赖，使用稳定的字节跳动CDN -->
     <script src="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/axios/1.6.0/axios.min.js"></script>
-    <!-- 高德地图API 预留 -->
-    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=你的高德地图Web API Key"></script>
+    <!-- 高德地图API 预留（先注释，避免报错，需要时取消注释并填key） -->
+    <!-- <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=你的高德地图Web API Key"></script> -->
+    <!-- 字体图标库（恢复原界面图标） -->
+    <link rel="stylesheet" href="https://lf6-cdn-tos.bytecdntp.com/cdn/expire-1-M/font-awesome/4.7.0/css/font-awesome.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", sans-serif; }
-        body { padding: 20px; max-width: 600px; margin: 0 auto; background: #f8f9fa; }
-        .card { background: white; border-radius: 12px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); }
-        .title { font-size: 22px; font-weight: bold; text-align: center; margin-bottom: 24px; color: #1a1a1a; }
-        .upload-btn { width: 100%; padding: 16px; background: #07c160; color: white; border: none; border-radius: 8px; font-size: 17px; font-weight: 500; margin-bottom: 20px; cursor: pointer; }
-        .upload-btn:active { opacity: 0.8; }
-        .upload-btn:disabled { background: #ccc; cursor: not-allowed; }
-        .preview-area { width: 100%; height: 300px; border-radius: 8px; background: #eef2f6; margin-bottom: 20px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; background-repeat: no-repeat; }
-        .preview-placeholder { text-align: center; color: #6c757d; padding: 60px 20px; }
-        .result-area { line-height: 1.8; color: #333; }
-        .result-field { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px dashed #e9ecef; }
-        .result-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .field-label { font-weight: bold; color: #1a1a1a; margin-bottom: 6px; font-size: 15px; display: flex; align-items: center; gap: 6px; }
-        .field-content { font-size: 14px; color: #444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
+        body { 
+            padding: 20px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        /* 恢复原卡片阴影和圆角设计 */
+        .card { 
+            background: white; 
+            border-radius: 16px; 
+            padding: 28px; 
+            margin-bottom: 24px; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+        }
+        .title { 
+            font-size: 24px; 
+            font-weight: bold; 
+            text-align: center; 
+            margin-bottom: 28px; 
+            color: #1a1a1a;
+            letter-spacing: 1px;
+        }
+        .upload-btn { 
+            width: 100%; 
+            padding: 18px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 18px; 
+            font-weight: 500; 
+            margin-bottom: 24px; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .upload-btn:active { 
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.4);
+        }
+        .upload-btn:disabled { 
+            background: #ccc; 
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        .preview-area { 
+            width: 100%; 
+            height: 320px; 
+            border-radius: 12px; 
+            background: #f8f9fa; 
+            margin-bottom: 24px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            background-size: cover; 
+            background-position: center; 
+            background-repeat: no-repeat;
+            border: 2px dashed #dee2e6;
+            transition: all 0.3s ease;
+        }
+        .preview-area:hover {
+            border-color: #667eea;
+        }
+        .preview-placeholder { 
+            text-align: center; 
+            color: #6c757d; 
+            padding: 80px 20px;
+        }
+        .preview-placeholder i {
+            font-size: 64px;
+            color: #adb5bd;
+            margin-bottom: 16px;
+        }
+        .result-area { 
+            line-height: 1.8; 
+            color: #333;
+        }
+        .result-field { 
+            margin-bottom: 20px; 
+            padding-bottom: 20px; 
+            border-bottom: 1px dashed #e9ecef;
+        }
+        .result-field:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+            padding-bottom: 0;
+        }
+        .field-label { 
+            font-weight: bold; 
+            color: #1a1a1a; 
+            margin-bottom: 8px; 
+            font-size: 16px; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px;
+        }
+        .field-label i {
+            color: #667eea;
+            font-size: 18px;
+        }
+        .field-content { 
+            font-size: 15px; 
+            color: #444;
+            padding-left: 26px;
+        }
         .confidence-high { color: #07c160; font-weight: bold; }
         .confidence-medium { color: #ff9500; font-weight: bold; }
         .confidence-low { color: #ff3b30; font-weight: bold; }
-        .loading { text-align: center; padding: 30px; color: #666; }
-        .error-tip { background: #fff2f0; border: 1px solid #ffccc7; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 20px; }
-        .error-tip h3 { color: #ff3b30; margin-bottom: 12px; }
-        .error-tip p { color: #666; margin-bottom: 20px; }
-        .back-btn { padding: 12px 30px; background: #1a4d5f; color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; }
-        .back-btn:active { opacity: 0.8; }
-        #mapContainer { width: 100%; height: 300px; border-radius: 8px; margin-top: 20px; display: none; }
+        .loading { 
+            text-align: center; 
+            padding: 40px; 
+            color: #666;
+            font-size: 16px;
+        }
+        .loading i {
+            font-size: 32px;
+            color: #667eea;
+            margin-bottom: 12px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .error-tip { 
+            background: linear-gradient(135deg, #fff2f0 0%, #ffccc7 100%);
+            border: 1px solid #ffccc7; 
+            border-radius: 12px; 
+            padding: 24px; 
+            text-align: center; 
+            margin-bottom: 24px;
+            box-shadow: 0 4px 15px rgba(255, 59, 48, 0.1);
+        }
+        .error-tip h3 { 
+            color: #ff3b30; 
+            margin-bottom: 12px;
+            font-size: 18px;
+        }
+        .error-tip p { 
+            color: #666; 
+            margin-bottom: 20px;
+            font-size: 15px;
+        }
+        .back-btn { 
+            padding: 14px 36px; 
+            background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73 100%);
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            font-size: 16px; 
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(26, 77, 95, 0.3);
+        }
+        .back-btn:active { 
+            transform: translateY(2px);
+            box-shadow: 0 2px 6px rgba(26, 77, 95, 0.3);
+        }
+        #mapContainer { 
+            width: 100%; 
+            height: 300px; 
+            border-radius: 12px; 
+            margin-top: 24px; 
+            display: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        /* 恢复原有的两个模块（探索打卡+管理后台入口） */
+        .module-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            border-radius: 12px;
+            background: #f8f9fa;
+            margin-bottom: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .module-card:hover {
+            background: #e9ecef;
+            transform: translateX(4px);
+        }
+        .module-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .module-explore {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .module-admin {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        .module-info h4 {
+            font-size: 16px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        .module-info p {
+            font-size: 13px;
+            color: #6c757d;
+        }
+        /* 底部版权信息 */
+        .footer {
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+            margin-top: 40px;
+            padding-bottom: 20px;
+        }
     </style>
 </head>
 <body>
+    <!-- 模块一：建筑识别 -->
     <div class="card">
-        <h1 class="title">南京颐和路建筑智能识别</h1>
+        <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
         <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display: none;">
-        <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">📸 上传建筑照片</button>
+        <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">
+            <i class="fa fa-camera"></i> 上传建筑照片
+        </button>
         <div class="preview-area" id="imagePreviewArea">
             <div class="preview-placeholder">
-                <i class="fas fa-camera" style="font-size: 48px; opacity: 0.5; margin-bottom: 12px;"></i>
+                <i class="fa fa-picture-o"></i>
                 <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-                <p style="font-size:12px">支持 JPG / PNG 格式</p>
+                <p style="font-size:13px; margin-top: 8px;">支持 JPG / PNG 格式，最大10MB</p>
             </div>
         </div>
     </div>
@@ -53,29 +255,76 @@
     <div class="error-tip" id="errorTipArea" style="display: none;">
         <h3 id="errorTitle">该建筑不在颐和路片区哦~</h3>
         <p id="errorDesc">我们来看看其他建筑吧！</p>
-        <button class="back-btn" onclick="goBackHome()">🔙 立即返回</button>
+        <button class="back-btn" onclick="goBackHome()">
+            <i class="fa fa-home"></i> 立即返回
+        </button>
     </div>
 
     <!-- 识别结果区域 -->
     <div class="card" id="resultCard" style="display: none;">
-        <h3 class="title">识别结果</h3>
+        <h3 class="title">📋 识别结果</h3>
         <div class="result-area" id="resultContent"></div>
-        <!-- 高德地图容器 -->
-        <div id="mapContainer"></div>
+        <!-- 高德地图容器（暂时隐藏，需要时取消注释） -->
+        <!-- <div id="mapContainer"></div> -->
+    </div>
+
+    <!-- 模块二：探索打卡（保留原界面） -->
+    <div class="card">
+        <h3 class="title">🗺️ 探索颐和路</h3>
+        <div class="module-card" onclick="alert('打卡功能即将上线，敬请期待~')">
+            <div class="module-icon module-explore">
+                <i class="fa fa-map-marker"></i>
+            </div>
+            <div class="module-info">
+                <h4>打卡集徽章</h4>
+                <p>打卡特色建筑，收集专属民国徽章</p>
+            </div>
+            <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
+        </div>
+        <div class="module-card" onclick="alert('路线推荐功能即将上线，敬请期待~')">
+            <div class="module-icon module-explore">
+                <i class="fa fa-route"></i>
+            </div>
+            <div class="module-info">
+                <h4>智能路线推荐</h4>
+                <p>为你定制专属的颐和路游览路线</p>
+            </div>
+            <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
+        </div>
+    </div>
+
+    <!-- 模块三：管理后台入口（保留原界面） -->
+    <div class="card">
+        <h3 class="title">⚙️ 更多功能</h3>
+        <div class="module-card" onclick="alert('管理后台仅对管理员开放')">
+            <div class="module-icon module-admin">
+                <i class="fa fa-cog"></i>
+            </div>
+            <div class="module-info">
+                <h4>管理后台</h4>
+                <p>数据统计、内容管理、用户反馈</p>
+            </div>
+            <i class="fa fa-chevron-right" style="color: #adb5bd; margin-left: auto;"></i>
+        </div>
+    </div>
+
+    <!-- 底部版权 -->
+    <div class="footer">
+        <p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p>
     </div>
 
     <script>
         // ===================== 核心配置区（只需要修改这里的内容） =====================
-        // 1. 高德地图Web API Key
+        // 1. 高德地图Web API Key（需要时填写并取消上面的script注释）
         const AMAP_API_KEY = "你的高德地图Web API Key";
-        // 2. Coze API 配置
-        const COZE_API_KEY = "你的Coze API密钥";
-        const COZE_BOT_ID = "你的Coze机器人ID";
-        // 3. 知识库文件地址（GitHub Raw地址）
+        // 2. Coze API 配置（必须填写才能使用识别功能）
+        const COZE_API_KEY = "你的Coze API密钥（pat_开头）";
+        const COZE_BOT_ID = "你的Coze机器人ID（数字）";
+        // 3. 知识库文件地址（替换成你自己的GitHub Raw地址）
         const KNOWLEDGE_BASE_URL = {
-            feature: "https://raw.githubusercontent.com/你的GitHub用户名/你的仓库名/main/特征识别库.json",
-            building: "https://raw.githubusercontent.com/你的GitHub用户名/你的仓库名/main/建筑本体库.json",
-            street: "https://raw.githubusercontent.com/你的GitHub用户名/你的仓库名/main/街巷空间叙事库.json"
+            feature: "https://raw.githubusercontent.com/你的用户名/你的仓库名/main/特征识别库.json",
+            building: "https://raw.githubusercontent.com/你的用户名/你的仓库名/main/建筑本体库.json",
+            street: "https://raw.githubusercontent.com/你的用户名/你的仓库名/main/街巷空间叙事库.json"
         };
         // 4. 小程序首页地址（自动跳转用）
         const MINI_PROGRAM_HOME_URL = "/pages/index/index";
@@ -92,14 +341,14 @@
         window.onload = async () => {
             const uploadBtn = document.getElementById('uploadBtn');
             uploadBtn.disabled = true;
-            uploadBtn.innerText = "📦 正在加载知识库...";
+            uploadBtn.innerHTML = '<i class="fa fa-spinner fa-spin"></i> 正在加载知识库...';
 
             try {
-                // 同时下载3个知识库
+                // 同时下载3个知识库，街巷库不存在也不报错
                 const [featureRes, buildingRes, streetRes] = await Promise.all([
-                    axios.get(KNOWLEDGE_BASE_URL.feature),
-                    axios.get(KNOWLEDGE_BASE_URL.building),
-                    axios.get(KNOWLEDGE_BASE_URL.street).catch(() => ({ data: [] })) // 街巷库不存在也不报错
+                    axios.get(KNOWLEDGE_BASE_URL.feature, { timeout: 10000 }),
+                    axios.get(KNOWLEDGE_BASE_URL.building, { timeout: 10000 }),
+                    axios.get(KNOWLEDGE_BASE_URL.street, { timeout: 5000 }).catch(() => ({ data: [] }))
                 ]);
                 
                 featureDB = featureRes.data;
@@ -107,10 +356,13 @@
                 streetDB = streetRes.data;
                 
                 uploadBtn.disabled = false;
-                uploadBtn.innerText = "📸 上传建筑照片";
+                uploadBtn.innerHTML = '<i class="fa fa-camera"></i> 上传建筑照片';
             } catch (error) {
-                uploadBtn.innerText = "❌ 知识库加载失败";
-                alert("知识库加载失败，请下拉刷新重试");
+                uploadBtn.innerHTML = '<i class="fa fa-times"></i> 知识库加载失败';
+                // 更友好的错误提示
+                setTimeout(() => {
+                    alert("知识库加载失败，请检查网络连接或下拉刷新重试\n\n如果问题持续，请确认GitHub Raw地址是否正确");
+                }, 500);
             }
         };
 
@@ -118,6 +370,12 @@
         document.getElementById('photoInput').addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (!file) return;
+            
+            // 限制文件大小10MB
+            if (file.size > 10 * 1024 * 1024) {
+                alert("文件大小不能超过10MB，请选择更小的图片");
+                return;
+            }
             
             // 预览照片
             const previewArea = document.getElementById('imagePreviewArea');
@@ -132,7 +390,7 @@
             await startRecognition(file);
         });
 
-        // 核心识别逻辑
+        // 核心识别逻辑（完全去掉GPS识别，仅靠特征匹配）
         async function startRecognition(file) {
             const resultCard = document.getElementById('resultCard');
             const errorTipArea = document.getElementById('errorTipArea');
@@ -141,7 +399,13 @@
             // 重置显示
             resultCard.style.display = 'none';
             errorTipArea.style.display = 'none';
-            resultContent.innerHTML = '<div class="loading">🔍 正在识别建筑特征...</div>';
+            resultContent.innerHTML = `
+                <div class="loading">
+                    <i class="fa fa-cog"></i>
+                    <p>正在识别建筑特征...</p>
+                </div>
+            `;
+            resultCard.style.display = 'block';
 
             try {
                 // 第一步：用Coze多模态API提取照片中的建筑特征
@@ -154,12 +418,14 @@
                 // 第三步：处理匹配结果
                 if (!matchResult.isInArea) {
                     // 非颐和路片区，显示提示并自动跳转
+                    resultCard.style.display = 'none';
                     showErrorTip("该建筑不在颐和路片区哦~", "我们来看看其他建筑吧！");
                     return;
                 }
 
                 if (!matchResult.building) {
                     // 在片区内但无匹配建筑，显示提示并自动跳转
+                    resultCard.style.display = 'none';
                     showErrorTip("这栋建筑在颐和路附近", "小游正在努力补充相关信息哦！敬请期待~");
                     return;
                 }
@@ -169,16 +435,26 @@
                 renderResult(currentBuilding, matchResult.confidence);
                 resultCard.style.display = 'block';
 
-                // 初始化高德地图，显示建筑位置
-                initMap(currentBuilding.wgs_lng, currentBuilding.wgs_lat, currentBuilding.name);
+                // 高德地图定位（暂时注释，需要时取消注释）
+                // initMap(currentBuilding.gcj_lng, currentBuilding.gcj_lat, currentBuilding.name);
 
             } catch (error) {
-                resultContent.innerHTML = '<div class="loading">❌ 识别失败，请检查网络后重试</div>';
+                resultContent.innerHTML = `
+                    <div class="loading">
+                        <i class="fa fa-exclamation-triangle" style="color: #ff3b30;"></i>
+                        <p>识别失败，请检查网络后重试</p>
+                        <p style="font-size:12px; color:#666; margin-top:8px;">错误信息：${error.message}</p>
+                    </div>
+                `;
             }
         }
 
         // 用Coze API提取建筑特征
         async function extractBuildingFeatures(base64) {
+            if (!COZE_API_KEY || !COZE_BOT_ID || COZE_API_KEY === "你的Coze API密钥（pat_开头）") {
+                throw new Error("请先配置Coze API密钥和机器人ID");
+            }
+
             const response = await axios.post('https://api.coze.cn/open_api/v2/chat', {
                 bot_id: COZE_BOT_ID,
                 user: "jinling_zhiyou_user",
@@ -192,22 +468,32 @@
                 headers: {
                     'Authorization': 'Bearer ' + COZE_API_KEY,
                     'Content-Type': 'application/json'
-                }
+                },
+                timeout: 30000
             });
+
+            if (response.data.code !== 0) {
+                throw new Error(`Coze API错误：${response.data.msg}`);
+            }
 
             const content = response.data.messages[0].content;
             // 把提取的特征转成数组
-            return content.split(/[，。\n、]/).filter(item => item.trim().length > 0);
+            return content.split(/[，。\n、；]/).filter(item => item.trim().length > 0);
         }
 
         // 匹配特征库与建筑库
         function matchBuildingByFeatures(extractedFeatures) {
+            // 处理空特征库情况
+            if (!featureDB || featureDB.length === 0) {
+                return { isInArea: false, building: null, confidence: 0 };
+            }
+
             // 第一步：匹配片区通用特征，判断是否在颐和路片区
             const areaFeature = featureDB[0]; // 颐和路片区特征
             let areaMatchCount = 0;
             
             extractedFeatures.forEach(feature => {
-                if (areaFeature.area_features.some(areaFeature => 
+                if (areaFeature.area_features && areaFeature.area_features.some(areaFeature => 
                     feature.toLowerCase().includes(areaFeature.toLowerCase())
                 )) {
                     areaMatchCount++;
@@ -215,7 +501,7 @@
             });
 
             // 片区特征匹配度低于30%，判定为不在片区内
-            const areaMatchRate = areaMatchCount / areaFeature.area_features.length;
+            const areaMatchRate = areaFeature.area_features ? areaMatchCount / areaFeature.area_features.length : 0;
             if (areaMatchRate < 0.3) {
                 return { isInArea: false, building: null, confidence: 0 };
             }
@@ -224,23 +510,25 @@
             let bestMatch = null;
             let maxMatchCount = 0;
             
-            areaFeature.buildings.forEach(buildingFeature => {
-                let matchCount = 0;
-                extractedFeatures.forEach(feature => {
-                    if (buildingFeature.unique_features.some(uniqueFeature => 
-                        feature.toLowerCase().includes(uniqueFeature.toLowerCase())
-                    )) {
-                        matchCount++;
+            if (areaFeature.buildings && areaFeature.buildings.length > 0) {
+                areaFeature.buildings.forEach(buildingFeature => {
+                    let matchCount = 0;
+                    extractedFeatures.forEach(feature => {
+                        if (buildingFeature.unique_features && buildingFeature.unique_features.some(uniqueFeature => 
+                            feature.toLowerCase().includes(uniqueFeature.toLowerCase())
+                        )) {
+                            matchCount++;
+                        }
+                    });
+
+                    if (matchCount > maxMatchCount) {
+                        maxMatchCount = matchCount;
+                        bestMatch = buildingFeature;
                     }
                 });
+            }
 
-                if (matchCount > maxMatchCount) {
-                    maxMatchCount = matchCount;
-                    bestMatch = buildingFeature;
-                }
-            });
-
-            // 建筑特征匹配度低于20%，判定为无匹配建筑
+            // 建筑特征匹配度低于2个，判定为无匹配建筑
             if (!bestMatch || maxMatchCount < 2) {
                 return { isInArea: true, building: null, confidence: 0 };
             }
@@ -262,46 +550,46 @@
             };
         }
 
-        // 渲染识别结果
+        // 渲染识别结果（按要求顺序+图标）
         function renderResult(building, confidence) {
             const resultContent = document.getElementById('resultContent');
             let confidenceClass = 'confidence-low';
             if (confidence >= 80) confidenceClass = 'confidence-high';
             else if (confidence >= 60) confidenceClass = 'confidence-medium';
 
-            // 按要求的顺序渲染：建筑-位置-简介-特征-历史-置信度-趣事
+            // 严格按要求顺序：建筑-位置-简介-特征-历史-置信度-趣事（可选）
             let html = `
                 <div class="result-field">
-                    <div class="field-label">🏛️ 建筑名称</div>
+                    <div class="field-label"><i class="fa fa-building"></i> 建筑名称</div>
                     <div class="field-content">${building.name}</div>
                 </div>
                 <div class="result-field">
-                    <div class="field-label">📍 所在位置</div>
-                    <div class="field-content">${building.address}</div>
+                    <div class="field-label"><i class="fa fa-map-marker"></i> 所在位置</div>
+                    <div class="field-content">${building.address || '暂无位置信息'}</div>
                 </div>
                 <div class="result-field">
-                    <div class="field-label">📝 建筑简介</div>
+                    <div class="field-label"><i class="fa fa-file-text-o"></i> 建筑简介</div>
                     <div class="field-content">${building.简介 || '暂无简介'}</div>
                 </div>
                 <div class="result-field">
-                    <div class="field-label">🏗️ 建筑特征</div>
-                    <div class="field-content">${building.建筑特色 || '暂无特征信息'}</div>
+                    <div class="field-label"><i class="fa fa-paint-brush"></i> 建筑特征</div>
+                    <div class="field-content">${building.建筑特征 || '暂无特征信息'}</div>
                 </div>
                 <div class="result-field">
-                    <div class="field-label">📜 历史沿革</div>
+                    <div class="field-label"><i class="fa fa-history"></i> 历史沿革</div>
                     <div class="field-content">${building.历史沿革 || '暂无历史信息'}</div>
                 </div>
                 <div class="result-field">
-                    <div class="field-label">🎯 识别置信度</div>
+                    <div class="field-label"><i class="fa fa-bullseye"></i> 识别置信度</div>
                     <div class="field-content ${confidenceClass}">${confidence}%</div>
                 </div>
             `;
 
-            // 有趣事就放，没有就不放
+            // 有趣事就显示，没有就不显示
             if (building.名人趣事 && building.名人趣事.trim().length > 0) {
                 html += `
                     <div class="result-field">
-                        <div class="field-label">💡 名人趣事</div>
+                        <div class="field-label"><i class="fa fa-lightbulb-o"></i> 名人趣事</div>
                         <div class="field-content">${building.名人趣事}</div>
                     </div>
                 `;
@@ -339,7 +627,8 @@
             }
         }
 
-        // 初始化高德地图
+        // 初始化高德地图（暂时注释，需要时取消注释）
+        /*
         function initMap(lng, lat, buildingName) {
             const mapContainer = document.getElementById('mapContainer');
             mapContainer.style.display = 'block';
@@ -371,6 +660,7 @@
             });
             infoWindow.open(map, [lng, lat]);
         }
+        */
 
         // 文件转base64
         function fileToBase64(file) {
