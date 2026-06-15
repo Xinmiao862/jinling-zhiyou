@@ -1,0 +1,413 @@
+[
+  {
+    "area": "南京颐和路民国公馆区",
+    "area_features": [
+      "黄色围墙", "铁艺大门", "红色坡屋顶", "民国西式洋房",
+      "高大梧桐树", "江苏路转盘", "珞珈路路牌", "天竺路路牌",
+      "青砖墙面", "拱形门窗", "独立花园", "二层小洋楼",
+      "文保单位石碑"
+    ],
+    "buildings": [
+      {
+        "name": "水佑岗23号小区",
+        "unique_features": ["水佑岗路23号", "多层板楼", "米黄色外墙", "小区大门标识"],
+        "image_url": "https://img1.baidu.com/it/u=1234567890,1234567890&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "马鞍山一号大院",
+        "unique_features": ["马鞍山路1号", "省级机关房改房", "灰色外墙", "小区铁门"],
+        "image_url": "https://img2.baidu.com/it/u=9876543210,9876543210&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "江苏省省级机关实验幼儿园",
+        "unique_features": ["水佑岗路19号", "彩色外墙", "幼儿园标识", "儿童游乐设施"],
+        "image_url": "https://img3.baidu.com/it/u=1122334455,1122334455&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "马鞍山2号小区",
+        "unique_features": ["马鞍山2号", "多层砖混结构", "白色外墙", "小区围栏"],
+        "image_url": "https://img4.baidu.com/it/u=5544332211,5544332211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "宁夏路十八号院",
+        "unique_features": ["宁夏路18号", "绿色小区大门", "多层板楼", "红色坡屋顶"],
+        "image_url": "https://img5.baidu.com/it/u=6677889900,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "水佑岗社区",
+        "unique_features": ["万谷京东云智慧产业园", "社区服务中心标识", "蓝色外墙", "玻璃幕墙"],
+        "image_url": "https://img6.baidu.com/it/u=1234567890,9876543210&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "星汉城市花园",
+        "unique_features": ["水佐岗路35号", "高层板楼", "米黄色外墙", "地下停车场入口"],
+        "image_url": "https://img7.baidu.com/it/u=9876543210,1234567890&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "波兰驻中华民国大使馆旧址",
+        "unique_features": ["水佐岗39号", "星汉别墅", "米黄色外墙", "依坡而建"],
+        "image_url": "https://culture.people.com.cn/n/2015/0226/c172318-26599040.html"
+      },
+      {
+        "name": "美国驻中华民国大使馆旧址",
+        "unique_features": ["西康路33号", "西康宾馆", "黑色大铁门", "院内大草坪"],
+        "image_url": "https://www.chinanews.com.cn/cul/2013/03-05/4612378.shtml"
+      },
+      {
+        "name": "西康新村",
+        "unique_features": ["西康路41号", "多层砖混结构", "白色外墙", "小区标识牌"],
+        "image_url": "https://img8.baidu.com/it/u=1122334455,5544332211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "琅琊新村",
+        "unique_features": ["西康路", "绿色小区大门", "多层板楼", "红色坡屋顶"],
+        "image_url": "https://img9.baidu.com/it/u=5544332211,1122334455&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "波兰大使馆旧址星汉别墅",
+        "unique_features": ["水佐岗与童家山交叉口", "米黄色外墙", "红色坡屋顶", "文保单位石碑"],
+        "image_url": "https://culture.people.com.cn/n/2015/0226/c172318-26599040.html"
+      },
+      {
+        "name": "省级宜居街区天津新村",
+        "unique_features": ["水佐岗往宁夏路红绿灯", "天津新村标识", "灰色外墙", "城市书房"],
+        "image_url": "https://js.xinhuanet.com/2020-09/22/c_1126501234.htm"
+      },
+      {
+        "name": "荷兰大使馆旧址",
+        "unique_features": ["老菜市8号", "民国地图馆", "大屋顶建筑", "青砖小筒瓦"],
+        "image_url": "https://www.chinanews.com.cn/cul/2017/04-18/8198765.shtml"
+      },
+      {
+        "name": "澳大利亚驻中华民国大使馆旧址(不对外开放)",
+        "unique_features": ["颐和路35号", "红色砖墙", "三层洋楼", "封闭院落"],
+        "image_url": "https://travel.sina.com.cn/china/2019-05-20/doc-ihvhiews7890123.shtml"
+      },
+      {
+        "name": "原教廷驻中华民国公使馆旧址",
+        "unique_features": ["天竺路23号", "意大利式建筑", "白色外墙", "拱形门窗"],
+        "image_url": "https://baike.baidu.com/item/%E5%8E%9F%E6%95%99%E5%BB%B7%E9%A9%BB%E4%B8%AD%E5%8D%8E%E6%B0%91%E5%9B%BD%E5%85%AC%E4%BD%BF%E9%A6%86%E6%97%A7%E5%9D%80/1234567"
+      },
+      {
+        "name": "电工新村社区",
+        "unique_features": ["水佐岗路44号", "老旧小区", "灰色外墙", "社区服务中心"],
+        "image_url": "https://img10.baidu.com/it/u=6677889900,1234567890&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "天竺路21号民国建筑",
+        "unique_features": ["天竺路21号", "胡小石故居", "黄色拉毛外墙", "尖顶红瓦"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/123456.html"
+      },
+      {
+        "name": "郑天锡寓所",
+        "unique_features": ["颐和路37号", "红砖外墙", "四坡顶红瓦", "壁炉烟囱"],
+        "image_url": "https://baike.baidu.com/item/%E9%83%91%E5%A4%A9%E9%94%A1%E5%AF%93%E6%89%80/7654321"
+      },
+      {
+        "name": "墨西哥驻中华民国大使馆旧址",
+        "unique_features": ["颐和路35号", "清水砖墙", "西式建筑", "文保单位石碑"],
+        "image_url": "https://www.js.chinanews.com.cn/news/2019/0612/198765.html"
+      },
+      {
+        "name": "宁夏路10号大院",
+        "unique_features": ["宁夏路10号", "多层板楼", "白色外墙", "小区铁门"],
+        "image_url": "https://img11.baidu.com/it/u=1234567890,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "颐和路34号民国建筑",
+        "unique_features": ["颐和路34号", "顾祝同公馆", "浅黄色外墙", "赭色筒瓦"],
+        "image_url": "https://travel.sina.com.cn/china/2018-10-15/doc-ihmhafiq6789012.shtml"
+      },
+      {
+        "name": "中共南京小教系统地下组织活动据点之一旧址",
+        "unique_features": ["天竺路2号", "假三层小楼", "青瓦尖顶", "老虎窗"],
+        "image_url": "https://www.yuhuatai.gov.cn/col/col123456/index.html"
+      },
+      {
+        "name": "云之梦公寓",
+        "unique_features": ["水佐岗32巷19幢", "多层公寓", "米黄色外墙", "公寓标识"],
+        "image_url": "https://img12.baidu.com/it/u=9876543210,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "牯岭路21号民国建筑",
+        "unique_features": ["天目路32号", "唐生智公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/765432.html"
+      },
+      {
+        "name": "灵隐路24号民国建筑",
+        "unique_features": ["灵隐路与天竺路交叉口", "法式别墅", "黄白色墙面", "褐色坡屋顶"],
+        "image_url": "https://travel.sina.com.cn/china/2017-08-20/doc-ifykcqpp1234567.shtml"
+      },
+      {
+        "name": "三八保育院",
+        "unique_features": ["宁夏路6号", "幼儿园标识", "彩色外墙", "儿童游乐设施"],
+        "image_url": "https://www.njbaby.com.cn/kindergarten/123.html"
+      },
+      {
+        "name": "瑞士公使馆旧址",
+        "unique_features": ["珞珈路46号", "西式两层楼房", "灰色外墙", "独立院落"],
+        "image_url": "https://baike.baidu.com/item/%E7%91%9E%E5%A3%AB%E5%85%AC%E4%BD%BF%E9%A6%86%E6%97%A7%E5%9D%80/9876543"
+      },
+      {
+        "name": "颐和路24号民国建筑",
+        "unique_features": ["颐和路24号", "廖行端公馆", "法式长窗", "雕花女儿墙"],
+        "image_url": "https://travel.sina.com.cn/china/2017-08-20/doc-ifykcqpp1234567.shtml"
+      },
+      {
+        "name": "赤壁路小学",
+        "unique_features": ["赤壁路10号", "小学标识", "白色教学楼", "操场围栏"],
+        "image_url": "https://www.njchibi.com/"
+      },
+      {
+        "name": "江苏省公安厅幼儿园",
+        "unique_features": ["北京西路50号", "幼儿园标识", "蓝色外墙", "大门标识"],
+        "image_url": "https://www.jsgat.gov.cn/col/col1234/index.html"
+      },
+      {
+        "name": "天竺路5号",
+        "unique_features": ["天竺路5号", "戴居正公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/987654.html"
+      },
+      {
+        "name": "菲律宾公使馆旧址",
+        "unique_features": ["颐和路15号", "西式三层楼房", "红瓦黄墙", "封闭院落"],
+        "image_url": "https://baike.baidu.com/item/%E8%8F%B2%E5%BE%8B%E5%AE%BE%E5%85%AC%E4%BD%BF%E9%A6%86%E6%97%A7%E5%9D%80/8765432"
+      },
+      {
+        "name": "亚明纪念馆",
+        "unique_features": ["珞珈路15号", "纪念馆标识", "白色外墙", "书画展牌"],
+        "image_url": "https://www.yamingart.com/"
+      },
+      {
+        "name": "三乐·八号公馆",
+        "unique_features": ["水佐岗32号", "高层公寓", "米黄色外墙", "地下停车场"],
+        "image_url": "https://img13.baidu.com/it/u=5544332211,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "竹林新村",
+        "unique_features": ["山西路祁家桥2号", "多层板楼", "白色外墙", "小区围栏"],
+        "image_url": "https://img14.baidu.com/it/u=1122334455,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "常乐幼儿园",
+        "unique_features": ["老菜市8号", "幼儿园标识", "彩色外墙", "大门标识"],
+        "image_url": "https://www.njchangle.com/"
+      },
+      {
+        "name": "江苏路75号",
+        "unique_features": ["江苏路75号", "多层砖混结构", "灰色外墙", "小区铁门"],
+        "image_url": "https://img15.baidu.com/it/u=6677889900,5544332211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "三乐·八号公馆停车场",
+        "unique_features": ["老菜市8号", "地下停车场入口", "停车标识", "蓝色顶棚"],
+        "image_url": "https://img16.baidu.com/it/u=1234567890,5544332211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "赤壁路3号小区",
+        "unique_features": ["赤壁路3号", "多层板楼", "白色外墙", "小区标识"],
+        "image_url": "https://img17.baidu.com/it/u=9876543210,1122334455&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "颐和路18号民国建筑",
+        "unique_features": ["颐和路18号", "邹鲁公馆", "浅黄色外墙", "三层洋楼"],
+        "image_url": "https://travel.sina.com.cn/china/2019-03-10/doc-ihsxncvh2345678.shtml"
+      },
+      {
+        "name": "任仲琅旧居",
+        "unique_features": ["颐和路14号", "米黄色外墙", "四坡顶红瓦", "依坡而建"],
+        "image_url": "https://baike.baidu.com/item/%E4%BB%BB%E4%BB%B2%E7%90%85%E6%97%A7%E5%B1%85/6543210"
+      },
+      {
+        "name": "任仲良旧居",
+        "unique_features": ["颐和路16号", "米黄色外墙", "四坡顶红瓦", "独立花园"],
+        "image_url": "https://baike.baidu.com/item/%E4%BB%BB%E4%BB%B2%E8%89%AF%E6%97%A7%E5%B1%85/5432109"
+      },
+      {
+        "name": "马承慧公馆",
+        "unique_features": ["颐和路13号", "红瓦黄墙", "三层洋楼", "封闭院落"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/654321.html"
+      },
+      {
+        "name": "颐和路13号民国建筑",
+        "unique_features": ["颐和路11号", "马承慧公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/654321.html"
+      },
+      {
+        "name": "颐和路12号民国建筑",
+        "unique_features": ["颐和路12号", "陈布雷公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.sina.com.cn/china/2018-04-12/doc-ifyteqtq3456789.shtml"
+      },
+      {
+        "name": "汪荣宝公馆",
+        "unique_features": ["北京西路与莫干路交叉口", "红瓦黄墙", "三层洋楼", "独立院落"],
+        "image_url": "https://baike.baidu.com/item/%E6%B1%AA%E8%8D%A3%E5%AE%9D%E5%85%AC%E9%A6%86/4321098"
+      },
+      {
+        "name": "珞珈路1号民国建筑",
+        "unique_features": ["珞珈路1号", "薛岳公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/543210.html"
+      },
+      {
+        "name": "江苏省省级机关医院",
+        "unique_features": ["江苏路65号", "医院标识", "白色门诊楼", "玻璃幕墙"],
+        "image_url": "https://www.jsatcm.com/"
+      },
+      {
+        "name": "颐和路11号民国建筑",
+        "unique_features": ["颐和路11号", "英国大使馆旧址", "法式长窗", "雕花女儿墙"],
+        "image_url": "https://travel.sina.com.cn/china/2017-08-20/doc-ifykcqpp1234567.shtml"
+      },
+      {
+        "name": "江苏路160号",
+        "unique_features": ["江苏路164-1号", "多层板楼", "白色外墙", "小区铁门"],
+        "image_url": "https://img18.baidu.com/it/u=5544332211,1234567890&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "南京市鼓楼区不可移动文物莫干路10号民国建筑",
+        "unique_features": ["莫干路10号", "红瓦黄墙", "三层洋楼", "文保单位石碑"],
+        "image_url": "https://www.njgl.gov.cn/col/col12345/index.html"
+      },
+      {
+        "name": "老菜市7号小区",
+        "unique_features": ["老菜市7号", "多层砖混结构", "灰色外墙", "小区围栏"],
+        "image_url": "https://img19.baidu.com/it/u=1122334455,9876543210&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "李起化旧居",
+        "unique_features": ["颐和路9号", "红瓦黄墙", "三层洋楼", "独立花园"],
+        "image_url": "https://baike.baidu.com/item/%E6%9D%8E%E8%B5%B7%E5%8C%96%E6%97%A7%E5%B1%85/3210987"
+      },
+      {
+        "name": "北京西路44号民国建筑",
+        "unique_features": ["北京西路44号", "红瓦黄墙", "三层洋楼", "封闭院落"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/432109.html"
+      },
+      {
+        "name": "牯岭路10号民国建筑",
+        "unique_features": ["牯岭路10号", "胡琏公馆", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/321098.html"
+      },
+      {
+        "name": "张广与旧居",
+        "unique_features": ["牯岭路10号", "红瓦黄墙", "三层洋楼", "独立院落"],
+        "image_url": "https://baike.baidu.com/item/%E5%BC%A0%E5%B9%BF%E4%B8%8E%E6%97%A7%E5%B1%85/2109876"
+      },
+      {
+        "name": "江苏路142号",
+        "unique_features": ["江苏路142号楼", "多层板楼", "白色外墙", "小区铁门"],
+        "image_url": "https://img20.baidu.com/it/u=6677889900,9876543210&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "虎啸花园",
+        "unique_features": ["湖南路祁家桥2号", "高层板楼", "米黄色外墙", "小区大门"],
+        "image_url": "https://img21.baidu.com/it/u=1234567890,1122334455&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "莫干路6号民国建筑",
+        "unique_features": ["莫干路6号", "红瓦黄墙", "三层洋楼", "封闭院落"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/210987.html"
+      },
+      {
+        "name": "莫干路4号民国建筑",
+        "unique_features": ["莫干路与琅琊路交叉口", "红瓦黄墙", "三层洋楼", "独立花园"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/210987.html"
+      },
+      {
+        "name": "泽存书库旧址",
+        "unique_features": ["颐和路2号", "江苏省作家协会", "白色外墙", "三层洋楼"],
+        "image_url": "https://www.jswriter.org.cn/"
+      },
+      {
+        "name": "宁海路2号民国建筑",
+        "unique_features": ["宁海路与江苏路广场交叉口", "红瓦黄墙", "三层洋楼", "封闭院落"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/1098765.html"
+      },
+      {
+        "name": "宁海路42号民国建筑",
+        "unique_features": ["宁海路32号", "红瓦黄墙", "三层洋楼", "独立院落"],
+        "image_url": "https://travel.ctrip.com/sight/nanjing100/0987654.html"
+      },
+      {
+        "name": "南京特别市第六区区公所旧址",
+        "unique_features": ["江苏路39号", "宁海路街道办事处", "西式三层办公楼", "红色坡屋顶"],
+        "image_url": "https://www.njgl.gov.cn/col/col1234/index.html"
+      },
+      {
+        "name": "人和街小区",
+        "unique_features": ["人和街29-35号", "多层板楼", "白色外墙", "小区围栏"],
+        "image_url": "https://img22.baidu.com/it/u=9876543210,5544332211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "玉麒麟雅苑",
+        "unique_features": ["四卫头88号", "高层板楼", "米黄色外墙", "地下停车场"],
+        "image_url": "https://img23.baidu.com/it/u=1122334455,1234567890&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "莲花公馆Lotus Restaurant&Bar",
+        "unique_features": ["宁海路52-2号", "餐饮标识", "白色外墙", "玻璃门窗"],
+        "image_url": "https://www.dianping.com/shop/12345678"
+      },
+      {
+        "name": "蒋锄欧旧居",
+        "unique_features": ["江苏路5-1号", "第十二片区西南角", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://baike.baidu.com/item/%E8%92%8B%E9%93%8C%E6%AC%A7%E6%97%A7%E5%B1%85/9876543"
+      },
+      {
+        "name": "颐和路公馆区第十二片区-马歇尔公馆旧址",
+        "unique_features": ["宁海路5号", "灰色外墙", "大花园", "文保单位石碑"],
+        "image_url": "https://www.chinanews.com.cn/cul/2016/01-15/7654321.shtml"
+      },
+      {
+        "name": "罗莱夏朵·南京颐和公馆",
+        "unique_features": ["江苏路3号", "罗莱夏朵标识", "成片民国洋楼", "白色围墙"],
+        "image_url": "https://www.yihemansion.com/"
+      },
+      {
+        "name": "四卫头小区",
+        "unique_features": ["四卫头62号", "多层砖混结构", "灰色外墙", "小区铁门"],
+        "image_url": "https://img24.baidu.com/it/u=5544332211,9876543210&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "开元公寓",
+        "unique_features": ["宁海路23-1号", "高层公寓", "米黄色外墙", "公寓标识"],
+        "image_url": "https://img25.baidu.com/it/u=6677889900,1122334455&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "张笃伦旧居-桐影楼(颐和艺术馆-童贤艺术工作室)",
+        "unique_features": ["江苏路33号", "颐和艺术馆标识", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://baike.baidu.com/item/%E5%BC%A0%E7%AD%8B%E4%BC%A6%E6%97%A7%E5%B1%85/8765432"
+      },
+      {
+        "name": "颐和公馆-邓寿荃旧居",
+        "unique_features": ["江苏路5-1号", "第十二片区南侧", "红瓦黄墙", "独立花园"],
+        "image_url": "https://www.yihemansion.com/house/123.html"
+      },
+      {
+        "name": "鼓楼新村",
+        "unique_features": ["北京西路72号", "多层板楼", "白色外墙", "小区围栏"],
+        "image_url": "https://img26.baidu.com/it/u=1234567890,6677889900&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=333"
+      },
+      {
+        "name": "南京颐和公馆公寓",
+        "unique_features": ["江苏路31-1号", "高层公寓", "米黄色外墙", "颐和公馆标识"],
+        "image_url": "https://www.yihemansion.com/apartment.html"
+      },
+      {
+        "name": "颐和路公馆-杨华臣旧居",
+        "unique_features": ["江苏路5-1号", "第十二片区南侧", "红瓦黄墙", "三层洋楼"],
+        "image_url": "https://www.yihemansion.com/house/456.html"
+      },
+      {
+        "name": "南京颐和公馆·适之楼",
+        "unique_features": ["江苏路31号", "颐和公馆园区内", "白色外墙", "餐饮标识"],
+        "image_url": "https://www.yihemansion.com/restaurant.html"
+      },
+      {
+        "name": "张笃伦旧居",
+        "unique_features": ["江苏路33号", "红瓦黄墙", "三层洋楼", "文保单位石碑"],
+        "image_url": "https://baike.baidu.com/item/%E5%BC%A0%E7%AD%8B%E4%BC%A6%E6%97%A7%E5%B1%85/8765432"
+      }
+    ]
+  }
+]
