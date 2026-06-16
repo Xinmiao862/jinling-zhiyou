@@ -8,15 +8,12 @@
     <meta http-equiv="Expires" content="0">
     <title>金陵智游 - 南京颐和路</title>
     <script src="./jlzy-bus.js"></script>
-    <!-- 高德地图 完整引入 + 正常底图配置 -->
+    <!-- 高德地图 保留正常可用KEY -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
         body { padding: 20px; max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
-        .tab-nav { display: flex; gap: 8; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         .tab-btn { flex: 1; padding: 16px 0; text-align: center; border: none; background: #f8f9fa; font-size: 16px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.3s ease; }
         .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .tab-btn:hover:not(.active) { background: #e9ecef; }
@@ -36,7 +33,6 @@
         .confidence-high { color: #07c16; font-weight: bold; }
         .confidence-medium { color: #ff9500; font-weight: bold; }
         .confidence-low { color: #ff3b30; font-weight: bold; }
-        .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
         .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
         .error-tip h3 { color: #ff3b30; margin-bottom: 12px; font-size: 18px; }
         .error-tip p { color: #666; margin-bottom: 20px; font-size: 15px; }
@@ -44,7 +40,7 @@
         .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
         .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
         .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
-        #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; }
+        #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; display:flex;align-items:center;justify-content:center;color:#999; }
         .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .top-table th { color: #1a4d5f; font-weight: 600; }
@@ -60,7 +56,7 @@
         .progress-bar { background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden; }
         .progress-fill { height: 6px; border-radius: 10px; transition: width 0.6s ease; }
         .sample-text { background: #f8f9fa; border-radius: 10px; padding: 8px 12px; font-size: 0.75rem; color: #555; }
-        .spinner { display: inline-block; width: 16px; height: 16; border: 2px solid #ccc; border-top-color: #1a4d5f; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
+        .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #1a4d5f; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -123,7 +119,7 @@
     <button class="tab-btn" data-tab="tab2">探索颐和路</button>
     <button class="tab-btn" data-tab="tab3">评论聚类</button>
 </div>
-<!-- TAB1: 建筑识别 -->
+<!-- TAB1 建筑识别 -->
 <div class="tab-content active" id="tab1">
     <div class="card">
         <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
@@ -155,7 +151,7 @@
         </div>
     </div>
 </div>
-<!-- TAB2: 探索颐和路 -->
+<!-- TAB2 探索颐和路 -->
 <div class="tab-content" id="tab2">
     <div class="card">
         <h3 class="title">🗺️ 我的探索之旅</h3>
@@ -167,15 +163,14 @@
         <div class="badge-grid" id="badgeContainer"></div>
     </div>
 </div>
-<!-- TAB3: 评论聚类 -->
+<!-- TAB3 评论聚类 -->
 <div class="tab-content" id="tab3">
     <div class="card">
         <h3 class="title">📊 评论聚类</h3>
         <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与话题挖掘</p>
         <div class="admin-grid">
             <div class="map-card">
-                <div id="adminMap"></div>
-                <div style="padding:8px 12px;background:#f1f5f9;font-size:0.75rem;border-radius:0 0 12px;">🔥 兴趣热力图（颜色越深代表关注度越高）</div>
+                <div id="adminMap">后台地图（已禁用外部依赖）</div>
             </div>
             <div class="stats-card">
                 <div class="section-title">📈 高频访问点 TOP5</div>
@@ -205,7 +200,7 @@
 <div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
 
 <script>
-// 两个固定建筑，循环切换
+// 固定两座建筑 循环切换
 const BUILD_LIST = [
     {
         name: "颐和路34号民国建筑",
@@ -230,8 +225,6 @@ let uploadCount = 0;
 
 // 全局变量
 let amapInstance = null;
-let mapAdmin = null;
-let heatLayer = null;
 let clusterCommentsData = [];
 let lastUnlockedCount = 0;
 
@@ -276,7 +269,7 @@ function animateConfetti() {
     var alive = false;
     confettiPieces.forEach(function(p) {
         p.x += p.speedX;
-        p.speedY += p.gravity;
+        p.y += p.gravity;
         p.y += p.speedY;
         p.rotation += p.rotationSpeed;
         p.life -= p.decay;
@@ -332,49 +325,13 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
         document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
         this.classList.add('active');
         document.getElementById(tabId).classList.add('active');
-        if (tabId === 'tab3') {
-            setTimeout(function() {
-                if (!mapAdmin) initAdminMap();
-                else mapAdmin.invalidateSize();
-                renderAdminPanels();
-            }, 100);
-        }
         if (tabId === 'tab2') {
             updateExplorePanel();
         }
     });
 });
 
-// 后台热力图
-function initAdminMap() {
-    if (mapAdmin) return;
-    const mapDom = document.getElementById('adminMap');
-    if (!mapDom) return;
-    mapAdmin = L.map('adminMap').setView([32.061, 118.783], 13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapAdmin);
-    mapAdmin.whenReady(() => {
-        updateHeatmap();
-    });
-}
-function updateHeatmap() {
-    var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
-    var points = [];
-    if (records && records.length > 0) {
-        records.forEach(function(rec) {
-            var lat = 32.061 + Math.random() * 0.01;
-            var lng = 118.783 + Math.random() * 0.01;
-            var conf = (typeof rec.confidence === "number") ? rec.confidence : 80;
-            points.push([lat, lng, conf / 100]);
-        });
-    }
-    if (!points.length) {
-        points = [[32.061, 118.783, 0.5]];
-    }
-    if (heatLayer) {
-        mapAdmin.removeLayer(heatLayer);
-    }
-    heatLayer = L.heatLayer(points, { radius: 25, blur: 18, maxZoom: 17 }).addTo(mapAdmin);
-}
+// 模拟排行榜数据
 function renderAdminPanels() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
     var freq = {};
@@ -382,17 +339,16 @@ function renderAdminPanels() {
         freq[rec.name] = (freq[rec.name] || 0) + 1;
     });
     var sorted = Object.keys(freq).sort(function(a,b) { return freq[b] - freq[a]; }).slice(0, 5);
-    var tbody = document.querySelector('#topBuildingsTable tbody');
-    if (sorted.length === 0) {
+    var tbody = document.querySelector('#topBuildingsTable');
+    if(sorted.length === 0){
         tbody.innerHTML = '<tr><td colspan="2">暂无识别数据</td>';
-    } else {
+    }else{
         var html = '';
-        sorted.forEach(function(name) {
-            html += '<tr><td>' + name + '</td><td>' + freq[name] + '次</td></tr>';
+        sorted.forEach(function(name){
+            html += '<tr><td>'+name+'</td><td>'+freq[name]+'次</td>';
         });
         tbody.innerHTML = html;
     }
-    if (mapAdmin) updateHeatmap();
 }
 
 // 话题聚类
@@ -495,7 +451,7 @@ function performClustering() {
 
 // 徽章系统
 var BADGE_CONFIG = [
-    { id: "beginner", name: "初来乍", icon: "🏅", need: 1 },
+    { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
     { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
     { id: "historian", name: "历史发掘者", icon: "📜", need: 6 },
     { id: "time_traveler", name: "时光旅人", icon: "🕰️", need: 9 },
@@ -600,7 +556,7 @@ function updateExplorePanel() {
         var isUnlocked = distinct >= b.need;
         var extra = newlyUnlocked && index === newBadgeIndex ? ' glow' : '';
         html += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}"><span class="icon">${b.icon}</span>
-        <div class="name">${b.name}</div><div class="status">${isUnlocked ? '✅ 已解锁' : '🔒'}</div></div>`;
+        <div class="name">${b.name}</div><div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div></div>`;
     });
     container.innerHTML = html;
     if (newlyUnlocked && newBadgeIndex >= 0) {
@@ -609,7 +565,7 @@ function updateExplorePanel() {
     lastUnlocked = unlockedCount;
 }
 
-// 高德地图 修复底图 + 正常渲染
+// 高德地图初始化（正常底图+标记）
 function initAmap(lng, lat, name) {
     if (amapInstance) {
         amapInstance.destroy();
@@ -627,10 +583,10 @@ function initAmap(lng, lat, name) {
     document.getElementById('buildingMap').style.display = 'block';
 }
 
-// 重置结果区域
+// 重置结果区域（修复 result 未定义报错）
 function resetResultContent() {
     const resultContent = document.getElementById('resultContent');
-    result.innerHTML = `
+    resultContent.innerHTML = `
         <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
         <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
         <div id="buildingMap"></div>
@@ -662,19 +618,17 @@ function renderResult(building, confidence) {
     initAmap(building.lng, building.lat, building.name);
 }
 
-// 图片上传核心逻辑 【修复预览不显示图片BUG】
+// 图片上传核心逻辑（修复预览图片不显示）
 function handleImageUpload(file) {
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
     resetResultContent();
 
-    // 修复：正常渲染上传图片到预览区
+    // 图片预览
     const reader = new FileReader();
     reader.onload = function(e) {
         const previewArea = document.getElementById('imagePreviewArea');
-        // 清空原有内容
-        previewArea.innerHTML = "";
-        // 创建图片元素并展示
+        preview.innerHTML = "";
         const img = document.createElement("img");
         img.src = e.target.result;
         img.style.width = "100%";
@@ -692,8 +646,7 @@ function handleImageUpload(file) {
     setTimeout(() => {
         const targetBuild = BUILD_LIST[uploadCount % 2];
         uploadCount++;
-        // 置信度 60~80
-        const confidence = Math.floor(Math.random() * 21) + 60;
+        const confidence = Math.floor(Math.random() * 21) + 60; // 60~80
         renderResult(targetBuild, confidence);
         document.getElementById('resultCard').style.display = 'block';
         uploadBtn.disabled = false;
