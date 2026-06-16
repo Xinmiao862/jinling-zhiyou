@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>金陵智游 - 南京颐和路</title>
     <script src="./jlzy-bus.js"></script>
-    <!-- 高德地图 保留正常可用KEY -->
+    <!-- 高德地图JS -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -23,14 +23,15 @@
         .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
         .upload-btn:active { transform: translateY(2px); }
         .upload-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-        .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; }
+        .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; overflow: hidden; }
+        .preview-area img { width: 100%; height: 100%; object-fit: cover; }
         .preview-placeholder { text-align: center; color: #6c757d; padding: 80px 20px; }
         .result-area { line-height: 1.8; color: #333; }
         .result-field { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e9ecef; }
         .result-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .field-label { font-weight: bold; color: #1a1a1a; margin-bottom: 8px; font-size: 16px; }
         .field-content { font-size: 15px; color: #444; padding-left: 10px; }
-        .confidence-high { color: #07c16; font-weight: bold; }
+        .confidence-high { color: #07c160; font-weight: bold; }
         .confidence-medium { color: #ff9500; font-weight: bold; }
         .confidence-low { color: #ff3b30; font-weight: bold; }
         .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
@@ -119,6 +120,7 @@
     <button class="tab-btn" data-tab="tab2">探索颐和路</button>
     <button class="tab-btn" data-tab="tab3">评论聚类</button>
 </div>
+
 <!-- TAB1 建筑识别 -->
 <div class="tab-content active" id="tab1">
     <div class="card">
@@ -151,6 +153,7 @@
         </div>
     </div>
 </div>
+
 <!-- TAB2 探索颐和路 -->
 <div class="tab-content" id="tab2">
     <div class="card">
@@ -163,14 +166,15 @@
         <div class="badge-grid" id="badgeContainer"></div>
     </div>
 </div>
-<!-- TAB3 评论聚类 -->
+
+<!-- TAB3 评论聚类（默认选中颐和路） -->
 <div class="tab-content" id="tab3">
     <div class="card">
         <h3 class="title">📊 评论聚类</h3>
-        <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与话题挖掘</p>
+        <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与</p>
         <div class="admin-grid">
             <div class="map-card">
-                <div id="adminMap">后台地图（已禁用外部依赖）</div>
+                <div id="adminMap">后台地图</div>
             </div>
             <div class="stats-card">
                 <div class="section-title">📈 高频访问点 TOP5</div>
@@ -179,8 +183,9 @@
                     <tbody><tr><td colspan="2">加载中...</td></tr></tbody>
                 </table>
                 <div class="section-title" style="margin-top:20px;">游客话题分析</div>
+                <!-- 默认选中 颐和路 -->
                 <select class="admin-select" id="clusterSpotSelector">
-                    <option value="颐和路">颐和路</option>
+                    <option value="颐和路" selected>颐和路</option>
                     <option value="莫愁湖">莫愁湖</option>
                     <option value="夫子庙">夫子庙</option>
                     <option value="中山陵">中山陵</option>
@@ -197,10 +202,11 @@
         </div>
     </div>
 </div>
-<div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
+
+<div class="footer"><p>金陵智游 © 2026 南京颐和路</p></div>
 
 <script>
-// 固定两座建筑 循环切换
+// 两座建筑循环数据
 const BUILD_LIST = [
     {
         name: "颐和路34号民国建筑",
@@ -222,8 +228,6 @@ const BUILD_LIST = [
     }
 ];
 let uploadCount = 0;
-
-// 全局变量
 let amapInstance = null;
 let clusterCommentsData = [];
 let lastUnlockedCount = 0;
@@ -325,19 +329,15 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
         document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
         this.classList.add('active');
         document.getElementById(tabId).classList.add('active');
-        if (tabId === 'tab2') {
-            updateExplorePanel();
-        }
+        if (tabId === 'tab2') updateExplorePanel();
     });
 });
 
-// 模拟排行榜数据
+// 模拟排行榜
 function renderAdminPanels() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
     var freq = {};
-    records.forEach(function(rec) {
-        freq[rec.name] = (freq[rec.name] || 0) + 1;
-    });
+    records.forEach(function(rec) { freq[rec.name] = (freq[rec.name] || 0) + 1; });
     var sorted = Object.keys(freq).sort(function(a,b) { return freq[b] - freq[a]; }).slice(0, 5);
     var tbody = document.querySelector('#topBuildingsTable');
     if(sorted.length === 0){
@@ -353,20 +353,17 @@ function renderAdminPanels() {
 
 // 话题聚类
 var TOPIC_KEYWORDS = {
-    "拥挤": ["人太多","拥挤","排队","挤","人多","人山人海","爆满","等很久"],
-    "环境卫生": ["脏","垃圾","厕所","臭","卫生","干净"],
-    "门票价格": ["贵","门票","收费","价格"],
-    "预约体验": ["预约","抢票","约不到"],
-    "拍照打卡": ["拍照","好看","打卡"],
-    "设施服务": ["休息","座椅","导览"],
-    "交通出行": ["停车","地铁","公交"]
+    "拥挤": ["人太多","拥挤","排队"],
+    "环境卫生": ["脏","垃圾"],
+    "门票价格": ["贵"],
+    "拍照打卡": ["拍照","好看"]
 };
 function generateMockComments() {
-    var spots = ['颐和路','莫愁湖','夫子庙','中山陵','南京博物院','玄武湖','鸡鸣寺'];
-    var templates = ['人太多了','环境干净','门票偏贵','拍照好看'];
+    var spots = ['颐和路','莫愁湖','夫子庙'];
+    var templates = ['人很多','环境不错','景色好看'];
     var comments = [];
     spots.forEach(function(spot) {
-        for (var i = 0; i < 20; i++) {
+        for (var i = 0; i < 15; i++) {
             comments.push({ spot: spot, content: templates[Math.floor(Math.random() * templates.length)] });
         }
     });
@@ -374,82 +371,46 @@ function generateMockComments() {
 }
 function loadClusterData() {
     fetch('./comments_data.json')
-        .then(function(response) {
-            if (!response.ok) throw new Error('文件不存在');
-            return response.json();
-        })
-        .then(function(data) {
-            clusterCommentsData = data;
-        })
-        .catch(function() {
-            clusterCommentsData = generateMockComments();
-        });
+        .then(function(res) { return res.json(); })
+        .catch(function() { clusterCommentsData = generateMockComments(); });
 }
 function analyzeTopics(comments) {
-    var topicStats = {};
-    var topicComments = {};
+    var obj = {};
     var topics = Object.keys(TOPIC_KEYWORDS);
-    topics.forEach(function(t) { topicStats[t] = 0; topicComments[t] = []; });
-    comments.forEach(function(comment) {
-        topics.forEach(function(topic) {
-            var keywords = TOPIC_KEYWORDS[topic];
-            let score = 0;
-            keywords.forEach(function(kw) {
-                if (comment.content.indexOf(kw) !== -1) score++;
-            });
-            if (score > 0) {
-                topicStats[topic] += score;
-                if (topicComments[topic].length < 2) topicComments[topic].push(comment.content);
-            }
+    topics.forEach(t=>obj[t]=0);
+    comments.forEach(function(c) {
+        topics.forEach(t=>{
+            TOPIC_KEYWORDS[t].forEach(k=>{ if(c.content.includes(k)) obj[t]++; });
         });
     });
-    var result = [];
-    topics.forEach(function(topic) {
-        if (topicStats[topic] > 0) {
-            result.push({
-                topic: topic,
-                count: topicStats[topic],
-                percentage: comments.length > 0 ? (topicStats[topic] / comments.length * 100).toFixed(1) : '0',
-                samples: topicComments[topic]
-            });
-        }
-    });
-    result.sort(function(a,b) { return b.count; });
-    return result;
+    var res = [];
+    for(var k in obj){
+        if(obj[k]>0) res.push({topic:k,count:obj[k],percentage:(obj[k]/comments.length*100).toFixed(1),samples:[c.content]});
+    }
+    res.sort((a,b)=>b.count-a.count);
+    return res;
 }
 function performClustering() {
     var spot = document.getElementById('clusterSpotSelector').value;
     var container = document.getElementById('clusterResultArea');
     container.innerHTML = '<div style="text-align:center;padding:20px;"><span class="spinner"></span> 分析中...</div>';
-    var spotComments = clusterComments.filter(function(item) { return item.spot === spot; });
-    if (spotComments.length === 0) {
-        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">暂无评论数据</p>';
+    var list = clusterComments.filter(item=>item.spot === spot);
+    if(list.length === 0){
+        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">暂无评论</p>';
         return;
     }
-    var analysis = analyzeTopics(spotComments);
-    if (analysis.length === 0) {
-        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">未识别话题</p>';
-        return;
-    }
-    var colors = ['#1a4d5f','#2c7a4d','#e67e22','#c0392b'];
-    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 ' + spotComments.length + ' 条评论</div>';
-    analysis.forEach(function(item, i) {
-        var color = colors[i % colors.length];
-        var pct = Math.min(parseFloat(item.percentage), 100);
-        html += '<div class="topic-item">';
-        html += '<div class="topic-header"><span class="topic-name" style="color:' + color + ';">📌 ' + item.topic + '</span><span class="topic-count">' + item.count + '次 (' + item.percentage + '%)</span></div>';
-        html += '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div>';
-        if (item.samples.length > 0) {
-            var sample = item.samples[0];
-            if (sample.length > 50) sample = sample.substring(0, 50) + '...';
-            html += '<div class="sample-text">"' + sample + '"</div>';
-        }
-        html += '</div>';
+    var data = analyzeTopics(list);
+    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 '+list+' 条评论</div>';
+    data.forEach(function(item){
+        html += `<div class="topic-item">
+            <div class="topic-header"><span class="topic-name">${item.topic}</span><span class="topic-count">${item.count}次 (${item.percentage}%)</span></div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${item.percentage}%"></div></div>
+        </div>`;
     });
     container.innerHTML = html;
 }
 
-// 徽章系统
+// 徽章配置
 var BADGE_CONFIG = [
     { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
     { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
@@ -461,10 +422,11 @@ var BADGE_CONFIG = [
 function updateExplorePanel() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
     var uniqueMap = {};
-    records.forEach(function(r) { uniqueMap[r.name] = r; });
-    var unique = Object.keys(uniqueMap).map(function(k) { return uniqueMap[k]; });
+    records.forEach(r=>uniqueMap[r.name] = r);
+    var unique = Object.keys(uniqueMap);
     var total = records.length;
     var distinct = unique.length;
+
     var levels = [
         { min: 0, emoji: "🌱", title: "萌芽旅行者", desc: "开始你的探索之旅" },
         { min: 1, emoji: "🚶", title: "初行侠", desc: "你已经迈出第一步" },
@@ -476,20 +438,13 @@ function updateExplorePanel() {
     ];
     var currentLevel = levels[0];
     for (var i = levels.length - 1; i >= 0; i--) {
-        if (distinct >= levels[i].min) {
-            currentLevel = levels[i];
-            break;
-        }
+        if (distinct >= levels[i].min) currentLevel = levels[i];
     }
-    var nextLevel = null;
-    var needMore = 0;
+    var nextLevel = null, needMore = 0;
     for (var i = 0; i < levels.length; i++) {
-        if (levels[i].min > distinct) {
-            nextLevel = levels[i];
-            needMore = levels[i].min - distinct;
-            break;
-        }
+        if (levels[i].min > distinct) { nextLevel = levels[i]; needMore = levels[i].min - distinct; break; }
     }
+
     var maxDots = 16;
     var filledDots = Math.min(distinct, maxDots);
     var dotsHtml = '';
@@ -500,25 +455,20 @@ function updateExplorePanel() {
             dotsHtml += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#e9ecef;margin:0 2px;"></span>';
         }
     }
-    var statsHtml = '';
-    statsHtml += '<div style="font-size:3rem;">' + currentLevel.emoji + '</div>';
-    statsHtml += '<div style="font-size:22px;font-weight:700;">' + currentLevel.title + '</div>';
-    statsHtml += '<div style="font-size:14px;color:#6c757d;">' + currentLevel.desc + '</div>';
-    statsHtml += '<div style="display:flex;justify-content:center;gap:40px;margin:16px 0;">';
-    statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#667eea;">' + distinct + '</div><div style="font-size:12px;">发现建筑</div></div>';
-    statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#764ba2;">' + total + '</div><div style="font-size:12px;">识别次数</div></div>';
-    if (nextLevel) {
-        statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#ff9500;">' + needMore + '</div><div style="font-size:12px;">距下一级</div></div>';
-    } else {
-        statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#07c160;">🏁</div><div style="font-size:12px;">已达满级</div></div>';
-    }
-    statsHtml += '</div>';
-    statsHtml += '<div style="margin:12px 0 4px 0;font-size:12px;color:#6c757d;">探索进度</div>';
-    statsHtml += '<div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">' + dotsHtml + '</div>';
-    if (nextLevel) {
-        statsHtml += '<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ' + needMore + ' 座解锁「' + nextLevel.title + '」</div>';
-    }
+
+    var statsHtml = `<div style="font-size:3rem;">${currentLevel.emoji}</div>
+    <div style="font-size:22px;font-weight:700;">${currentLevel.title}</div>
+    <div style="font-size:14px;color:#6c757d;">${currentLevel.desc}</div>
+    <div style="display:flex;justify-content:center;gap:40px;margin:16px 0;">
+        <div><div style="font-size:28px;font-weight:700;color:#667eea;">${distinct}</div><div style="font-size:12px;">发现建筑</div></div>
+        <div><div style="font-size:28px;font-weight:700;color:#764ba2;">${total}</div><div style="font-size:12px;">识别次数</div></div>
+        ${nextLevel?`<div><div style="font-size:28px;font-weight:700;color:#ff9500;">${needMore}</div><div style="font-size:12px;">距下一级</div></div>`:`<div><div style="font-size:28px;font-weight:700;color:#07c160;">🏁</div><div style="font-size:12px;">已达满级</div></div>`}
+    </div>
+    <div style="margin:12px 0 4px 0;font-size:12px;color:#6c757d;">探索进度</div>
+    <div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">${dotsHtml}</div>
+    ${nextLevel?`<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ${need} 座解锁「${nextLevel.title}」</div>`:''}`;
     document.getElementById('exploreStats').innerHTML = statsHtml;
+
     var unlockedCount = 0;
     for (var i = 0; i < BADGE_CONFIG.length; i++) {
         if (distinct >= BADGE_CONFIG[i].need) unlockedCount++;
@@ -536,57 +486,54 @@ function updateExplorePanel() {
         let achieved = distinct - prevNeed;
         currentProgress = Math.min((achieved / range) * 100, 100);
     } else currentProgress = 100;
-    var progressHtml = '<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">';
-    progressHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">';
-    progressHtml += '<span style="font-size:14px;font-weight:600;">徽章进度</span>';
-    progressHtml += nextBadge ? `<span style="font-size:13px;">${distinct} / ${nextBadge.need} → ${nextBadge.name}</span>` : '<span style="color:#07c160;">全部解锁</span>';
-    progressHtml += '</div>';
-    let pColor = currentProgress >= 80 ? '#07c160' : currentProgress >= 50 ? '#ff9500' : '#667eea';
-    progressHtml += `<div style="background:#e9ecef;height:12px;border-radius:20px;"><div style="width:${currentProgress}%;height:100%;background:${pColor};border-radius:20px;"></div></div>`;
-    progressHtml += '<div style="display:flex;justify-content:space-between;margin-top:6px;">';
-    BADGE_CONFIG.forEach(b => {
+
+    var progressHtml = `<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span style="font-size:14px;font-weight:600;">徽章进度</span>
+            ${nextBadge?`<span style="font-size:13px;">${distinct} / ${nextBadge.need} → ${nextBadge.name}</span>`:`<span style="color:#07c160;">全部解锁</span>`}
+        </div>
+        <div style="background:#e9ecef;height:12px;border-radius:20px;"><div style="width:${currentProgress}%;height:100%;background:${currentProgress>=80?'#07c160':currentProgress>=50?'#ff9500':'#667eea'};border-radius:20px;"></div></div>
+        <div style="display:flex;justify-content:space-between;margin-top:6px;">`;
+    BADGE_CONFIG.forEach(b=>{
         let isUnlocked = distinct >= b.need;
-        progressHtml += `<div style="text-align:center;"><div>${isUnlocked ? '✅' : '🔒'}</div><div style="font-size:10px;">${b.name}</div></div>`;
+        progressHtml += `<div style="text-align:center;"><div>${isUnlocked?'✅':'🔒'}</div><div style="font-size:10px;">${b.name}</div></div>`;
     });
-    progressHtml += '</div></div>';
+    progress += `</div></div>`;
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
+
     var container = document.getElementById('badgeContainer');
     var html = '';
     BADGE_CONFIG.forEach(function(b, index) {
         var isUnlocked = distinct >= b.need;
-        var extra = newlyUnlocked && index === newBadgeIndex ? ' glow' : '';
-        html += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}"><span class="icon">${b.icon}</span>
-        <div class="name">${b.name}</div><div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div></div>`;
+        var extra = newlyUnlocked ? ' glow' : '';
+        html += `<div class="badge-item ${isUnlocked} ${extra}"><span class="icon">${b.icon}</span>
+        <div class="name">${b.name}</div><div class="status">${isUnlocked?'✅ 已解锁':'🔒 未解锁'}</div></div>`;
     });
     container.innerHTML = html;
+
     if (newlyUnlocked && newBadgeIndex >= 0) {
         setTimeout(() => showUnlockModal(BADGE_CONFIG[newBadgeIndex].icon, BADGE_CONFIG[newBadgeIndex].name), 100);
     }
     lastUnlocked = unlockedCount;
 }
 
-// 高德地图初始化（正常底图+标记）
+// 高德地图
 function initAmap(lng, lat, name) {
-    if (amapInstance) {
-        amapInstance.destroy();
-    }
+    if (amapInstance) amapInstance.destroy();
     amapInstance = new AMap.Map('buildingMap', {
         zoom: 17,
         center: [lng, lat],
         resizeEnable: true
     });
-    const marker = new AMap.Marker({
-        position: [lng, lat],
-        title: name
-    });
+    const marker = new AMap.Marker({ position: [lng, lat], title: name });
     amapInstance.add(marker);
     document.getElementById('buildingMap').style.display = 'block';
 }
 
-// 重置结果区域（修复 result 未定义报错）
+// 重置结果
 function resetResultContent() {
-    const resultContent = document.getElementById('resultContent');
-    resultContent.innerHTML = `
+    const content = document.getElementById('resultContent');
+    content.innerHTML = `
         <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
         <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
         <div id="buildingMap"></div>
@@ -601,78 +548,72 @@ function resetResultContent() {
 
 // 渲染结果
 function renderResult(building, confidence) {
-    const resultContent = document.getElementById('resultContent');
-    let html = '';
-    html += `<div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">${building.name}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>`;
-    html += `<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>`;
-    html += `<div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>`;
-    html += `<div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div></div>`;
-
-    let confidenceClass = 'confidence-medium';
-    if(confidence >= 70) confidenceClass = 'confidence-high';
-    html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${confidenceClass}">${confidence}%</div></div>`;
-    html += `<div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
-    resultContent.innerHTML = html;
+    const content = document.getElementById('resultContent');
+    let html = `<div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">${building.name}</div></div>
+    <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>
+    <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
+    <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>
+    <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>
+    <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div>`;
+    let cls = confidence >=70 ? 'confidence-high' : 'confidence-medium';
+    html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${cls}">${confidence}%</div></div>
+    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
+    content.innerHTML = html;
     initAmap(building.lng, building.lat, building.name);
 }
 
-// 图片上传核心逻辑（修复预览图片不显示）
+// 图片上传（核心：首次上传解锁首个徽章）
 function handleImageUpload(file) {
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
     resetResultContent();
 
-    // 图片预览
+    // 修复图片预览
     const reader = new FileReader();
     reader.onload = function(e) {
-        const previewArea = document.getElementById('imagePreviewArea');
-        preview.innerHTML = "";
-        const img = document.createElement("img");
+        const preview = document.getElementById('imagePreviewArea');
+        preview.innerHTML = '';
+        const img = document.createElement('img');
         img.src = e.target.result;
-        img.style.width = "100%";
-        img.style.height = "100%";
-        img.style.objectFit = "cover";
-        img.style.borderRadius = "12px";
-        previewArea.appendChild(img);
+        preview.appendChild(img);
     };
     reader.readAsDataURL(file);
 
-    const uploadBtn = document.getElementById('uploadBtn');
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = '识别中...';
+    const btn = document.getElementById('uploadBtn');
+    btn.disabled = true;
+    btn.textContent = '识别中...';
 
     setTimeout(() => {
-        const targetBuild = BUILD_LIST[uploadCount % 2];
-        uploadCount++;
-        const confidence = Math.floor(Math.random() * 21) + 60; // 60~80
-        renderResult(targetBuild, confidence);
+        const idx = uploadCount % 2;
+        const target = BUILD_LIST[idx];
+        const confidence = Math.floor(Math.random() * 21) + 60;
+        renderResult(target, confidence);
+
+        // 模拟识别记录，触发徽章解锁（第一次上传=解锁第一个徽章）
+        if(!window.JLZY) window.JLZY = { getAllRecognitionRecords: () => [{name: target}] };
+        window.dispatchEvent(new Event('jlzy:recognitionAdded'));
+
         document.getElementById('resultCard').style.display = 'block';
-        uploadBtn.disabled = false;
-        uploadBtn.textContent = '上传建筑照片';
+        btn.disabled = false;
+        btn.textContent = '上传建筑照片';
+        uploadCount++;
     }, 1200);
 }
 
 // 事件监听
 function initEventListeners() {
-    document.getElementById('photoInput').addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            handleImageUpload(e.target.files[0]);
-        }
+    document.getElementById('photoInput').addEventListener('change', e=>{
+        if(e.target.files.length>0) handleImageUpload(e.target.files[0]);
     });
     document.getElementById('clusterBtn').addEventListener('click', performClustering);
-    window.addEventListener('jlzy:recognitionAdded', function () {
+    window.addEventListener('jlzy:recognitionAdded', ()=>{
         updateExplorePanel();
-        if (document.querySelector('#topBuildingsTable tbody')) {
-            renderAdminPanels();
-        }
+        renderAdminPanels();
     });
 }
 
-// 返回首页
 function goBackHome() {
-    window.location.reload();
+    location.reload();
 }
 
 // 页面初始化
@@ -682,6 +623,8 @@ window.onload = function() {
     resetResultContent();
     loadClusterData();
     updateExplorePanel();
+    // 页面加载自动执行颐和路评论分析
+    setTimeout(performClustering, 500);
 };
 </script>
 </body>
