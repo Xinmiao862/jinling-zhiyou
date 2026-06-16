@@ -74,12 +74,12 @@
         /* 徽章点亮动画 */
         @keyframes badgePop {
             0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
-            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255, 215, 0, 0); }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255,215,0,0); }
         }
         @keyframes badgeGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-            50% { box-shadow: 0 0 40px rgba(255, 215, 0, 0.8), 0 0 80px rgba(255, 215, 0, 0.4); }
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            50% { box-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.4); }
         }
         .badge-item.pop {
             animation: badgePop 0.6s ease forwards;
@@ -232,7 +232,7 @@
         <div class="preview-area" id="imagePreviewArea">
             <div class="preview-placeholder">
                 <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-                <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大10MB</p>
+                <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大2MB</p>
             </div>
         </div>
     </div>
@@ -312,12 +312,16 @@ const KNOWLEDGE_BASE = {
     street: "./街巷空间叙事库.json"
 };
 const MINI_PROGRAM_HOME_URL = "/pages/index/index";
-// ========== 重要：替换为你自己的腾讯云云函数公网URL（二选一填写） ==========
-// 示例格式：https://xxxxxxx.scf.tencentcs.com
+// ========== 重要：已匹配你腾讯云HTTP网关路由配置 ==========
+// 你的路由是 /cozeapi 指向云函数 coze-proxy，路径透传已开启
 const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com/cozeapi"; 
-// 拆分接口路径
 const UPLOAD_API = SCF_BASE_URL + "/upload";
 const CHAT_API = SCF_BASE_URL + "/chat";
+// 如果还是404，请改成下面这行（去掉SCF_BASE_URL的/cozeapi）：
+// const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com";
+// const UPLOAD_API = SCF_BASE_URL + "/cozeapi/upload";
+// const CHAT_API = SCF_BASE_URL + "/cozeapi/chat";
+
 let featureDB = [];
 let buildingDB = [];
 let streetDB = [];
@@ -501,7 +505,7 @@ var TOPIC_KEYWORDS = {
     "交通出行": ["停车","地铁","公交","打车","交通","堵车","车位","自驾"]
 };
 function generateMockComments() {
-    var spots = ['颐和路','莫愁湖','夫子庙','中山陵','南京博物院','玄武湖','鸡鸣'];
+    var spots = ['颐和路','莫愁湖','夫子庙','中山陵','南京博物院','玄武湖','鸡鸣寺'];
     var templates = ['人太多了，排队排了好久','环境很干净','门票价格有点贵','拍照超好看','预约太难了'];
     var comments = [];
     spots.forEach(function(spot) {
@@ -710,38 +714,59 @@ function updateExplorePanel() {
     }
     lastUnlockedCount = unlockedCount;
 }
-// 图片上传至云函数
-async function uploadImageToCoze(file) {
-    return new Promise((resolve, reject) => {
+// ========== 新增：图片压缩函数（按修改思路要求） ==========
+function compressImage(file, quality = 0.6) {
+    return new Promise((resolve) => {
         const reader = new FileReader();
-
-        reader.onload = async function () {
-            try {
-                const base64 = reader.result.split(',')[1];
-
-                const res = await fetch(UPLOAD_API, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        file: base64
-                    })
-                });
-
-                const data = await res.json();
-
-                if (data.code !== 0) throw new Error(data.msg || "上传失败");
-
-                resolve(data.data.id);
-            } catch (e) {
-                reject(e);
-            }
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const maxW = 1024;
+                const scale = Math.min(maxW / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const base64 = canvas.toDataURL("image/jpeg", quality);
+                resolve(base64);
+            };
+            img.src = e.target.result;
         };
-
-        reader.onerror = reject;
         reader.readAsDataURL(file);
     });
+}
+// ========== 完全替换：修复版上传函数（按修改思路要求） ==========
+async function uploadImageToCoze(file) {
+    // 1. 限制原始文件大小
+    if (file.size > 2 * 1024 * 1024) {
+        throw new Error("图片过大，请上传2MB以内图片");
+    }
+    // 2. 压缩图片
+    const compressed = await compressImage(file, 0.6);
+    const base64 = compressed.split(',')[1];
+    const res = await fetch(UPLOAD_API, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        mode: "cors", // 处理CORS失败
+        body: JSON.stringify({
+            file: base64
+        })
+    });
+    // 3. 先取text()防止非JSON报错
+    const text = await res.text();
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {
+        throw new Error("接口返回异常：" + text);
+    }
+    if (data.code !== 0) {
+        throw new Error(data.msg || "上传失败");
+    }
+    return data.data.id;
 }
 // 图片识别接口
 function cozeImageClassify(file) {
@@ -749,6 +774,7 @@ function cozeImageClassify(file) {
         return fetch(CHAT_API, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            mode: "cors",
             body: JSON.stringify({
                 bot_id: COZE_BOT_ID,
                 user_id: "jinling_zhiyou_user",
@@ -793,10 +819,9 @@ function resetResultContent() {
         <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
     `;
 }
-// ========== 按照修改思路文档 完全替换为修复版 renderResult ==========
+// 防语法错误版 renderResult（完全按修改思路文档）
 function renderResult(building, confidence, textData = {}) {
     const resultContent = document.getElementById('resultContent');
-
     const safe = (v) => (v === undefined || v === null ? '--' : String(v));
 
     let html = `
@@ -804,22 +829,18 @@ function renderResult(building, confidence, textData = {}) {
             <div class="field-label">建筑名称</div>
             <div class="field-content">${safe(building?.name)}</div>
         </div>
-
         <div class="result-field">
             <div class="field-label">所在位置</div>
             <div class="field-content">${safe(building?.address)}</div>
         </div>
-
         <div class="result-field">
             <div class="field-label">建筑简介</div>
             <div class="field-content">${safe(textData?.brief)}</div>
         </div>
-
         <div class="result-field">
             <div class="field-label">建筑特征</div>
             <div class="field-content">${safe(textData?.featureKeywords)}</div>
         </div>
-
         <div class="result-field">
             <div class="field-label">历史沿革</div>
             <div class="field-content">${safe(textData?.history)}</div>
@@ -915,16 +936,6 @@ function goBackHome() {
 }
 // 初始化事件监听
 function initEventListeners() {
-    // 文件选择绑定（兼容写法）
-    var fileInput = document.getElementById('fileInput');
-    if (fileInput) {
-        fileInput.onchange = function(e) {
-            if (e.target && e.target.files && e.target.files.length > 0) {
-                startRecognition(e.target.files[0]);
-            }
-        };
-    }
-
     // 主要上传按钮绑定（photoInput）
     var photoInput = document.getElementById('photoInput');
     if (photoInput) {
@@ -934,17 +945,14 @@ function initEventListeners() {
             }
         });
     }
-
     // 聚类按钮（安全绑定）
     var clusterBtn = document.getElementById('clusterBtn');
     if (clusterBtn) {
         clusterBtn.addEventListener('click', performClustering);
     }
-
     // 自定义事件监听（安全写法）
     window.addEventListener('jlzy:recognitionAdded', function () {
         updateExplorePanel();
-
         var tableBody = document.querySelector('#topBuildingsTable tbody');
         if (tableBody) {
             renderAdminPanels();
@@ -963,19 +971,6 @@ function loadKnowledgeBase() {
         console.error('知识库加载失败', err);
         alert('初始化失败，请刷新页面重试');
     });
-}
-function loadClusterData(){
-    fetch('./comments_data.json')
-        .then(function(res){
-            if(!res.ok) throw new Error();
-            return res.json();
-        })
-        .then(function(data){
-            clusterCommentsData = data;
-        })
-        .catch(function(){
-            clusterCommentsData = generateMockComments();
-        });
 }
 // 页面初始化
 window.onload = function() {
