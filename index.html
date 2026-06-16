@@ -232,7 +232,7 @@
         <div class="preview-area" id="imagePreviewArea">
             <div class="preview-placeholder">
                 <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-                <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大2MB</p>
+                <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大5MB</p>
             </div>
         </div>
     </div>
@@ -304,7 +304,7 @@
 </div>
 <div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
 <script>
-// ======================== 全局配置（已移除前端Token，使用云函数中转） ========================
+// ======================== 全局配置（已修复腾讯云API路径） ========================
 const COZE_BOT_ID = "7651525718031548468";
 const KNOWLEDGE_BASE = {
     feature: "./特征识别库.json",
@@ -312,15 +312,10 @@ const KNOWLEDGE_BASE = {
     street: "./街巷空间叙事库.json"
 };
 const MINI_PROGRAM_HOME_URL = "/pages/index/index";
-// ========== 重要：已匹配你腾讯云HTTP网关路由配置 ==========
-// 你的路由是 /cozeapi 指向云函数 coze-proxy，路径透传已开启
-const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com/cozeapi"; 
-const UPLOAD_API = SCF_BASE_URL + "/upload";
-const CHAT_API = SCF_BASE_URL + "/chat";
-// 如果还是404，请改成下面这行（去掉SCF_BASE_URL的/cozeapi）：
-// const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com";
-// const UPLOAD_API = SCF_BASE_URL + "/cozeapi/upload";
-// const CHAT_API = SCF_BASE_URL + "/cozeapi/chat";
+// ========== 最终正确路径：匹配你截图中的请求地址 ==========
+const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com"; 
+const UPLOAD_API = SCF_BASE_URL + "/cozeapi/upload";
+const CHAT_API = SCF_BASE_URL + "/cozeapi/chat";
 
 let featureDB = [];
 let buildingDB = [];
@@ -714,21 +709,29 @@ function updateExplorePanel() {
     }
     lastUnlockedCount = unlockedCount;
 }
-// ========== 新增：图片压缩函数（按修改思路要求） ==========
-function compressImage(file, quality = 0.6) {
+// ========== 最终修复：极限压缩函数（带迭代压缩兜底） ==========
+function compressImage(file, maxSizeKB = 800) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = function (e) {
             const img = new Image();
             img.onload = function () {
                 const canvas = document.createElement("canvas");
-                const maxW = 1024;
+                const maxW = 800;
                 const scale = Math.min(maxW / img.width, 1);
                 canvas.width = img.width * scale;
                 canvas.height = img.height * scale;
                 const ctx = canvas.getContext("2d");
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                const base64 = canvas.toDataURL("image/jpeg", quality);
+                
+                let quality = 0.45;
+                let base64 = "";
+                do {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    base64 = canvas.toDataURL("image/jpeg", quality);
+                    quality -= 0.1;
+                } while (base64.length > maxSizeKB * 1024 && quality > 0.1);
+                
+                console.log(`压缩完成：原始 ${(file.size/1024).toFixed(1)}KB → 压缩后 ${(base64.length/1024).toFixed(1)}KB，质量 ${quality+0.1}`);
                 resolve(base64);
             };
             img.src = e.target.result;
@@ -736,37 +739,50 @@ function compressImage(file, quality = 0.6) {
         reader.readAsDataURL(file);
     });
 }
-// ========== 完全替换：修复版上传函数（按修改思路要求） ==========
+// ========== 最终修复：上传函数（彻底解决413问题） ==========
 async function uploadImageToCoze(file) {
-    // 1. 限制原始文件大小
-    if (file.size > 2 * 1024 * 1024) {
-        throw new Error("图片过大，请上传2MB以内图片");
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error("图片过大，请上传5MB以内图片");
     }
-    // 2. 压缩图片
-    const compressed = await compressImage(file, 0.6);
+    
+    const compressed = await compressImage(file, 800);
     const base64 = compressed.split(',')[1];
-    const res = await fetch(UPLOAD_API, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        mode: "cors", // 处理CORS失败
-        body: JSON.stringify({
-            file: base64
-        })
-    });
-    // 3. 先取text()防止非JSON报错
-    const text = await res.text();
-    let data;
+    
+    if (base64.length > 800 * 1024) {
+        throw new Error("图片压缩后仍过大，请选择分辨率更低的照片");
+    }
+    
     try {
-        data = JSON.parse(text);
-    } catch (e) {
-        throw new Error("接口返回异常：" + text);
+        const res = await fetch(UPLOAD_API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            mode: "cors",
+            body: JSON.stringify({
+                file: base64
+            })
+        });
+        
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`接口异常：${res.status} ${res.statusText}`);
+        }
+        
+        if (data.code !== 0) {
+            throw new Error(data.msg || `上传失败：${data.code}`);
+        }
+        
+        return data.data.id;
+    } catch (err) {
+        if (err.message.includes('413') || err.message.includes('Payload Too Large')) {
+            throw new Error("图片体积仍超限，请尝试裁剪后再上传");
+        }
+        throw err;
     }
-    if (data.code !== 0) {
-        throw new Error(data.msg || "上传失败");
-    }
-    return data.data.id;
 }
 // 图片识别接口
 function cozeImageClassify(file) {
@@ -819,7 +835,7 @@ function resetResultContent() {
         <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
     `;
 }
-// 防语法错误版 renderResult（完全按修改思路文档）
+// 防语法错误版 renderResult
 function renderResult(building, confidence, textData = {}) {
     const resultContent = document.getElementById('resultContent');
     const safe = (v) => (v === undefined || v === null ? '--' : String(v));
@@ -936,7 +952,6 @@ function goBackHome() {
 }
 // 初始化事件监听
 function initEventListeners() {
-    // 主要上传按钮绑定（photoInput）
     var photoInput = document.getElementById('photoInput');
     if (photoInput) {
         photoInput.addEventListener('change', function(e) {
@@ -945,12 +960,10 @@ function initEventListeners() {
             }
         });
     }
-    // 聚类按钮（安全绑定）
     var clusterBtn = document.getElementById('clusterBtn');
     if (clusterBtn) {
         clusterBtn.addEventListener('click', performClustering);
     }
-    // 自定义事件监听（安全写法）
     window.addEventListener('jlzy:recognitionAdded', function () {
         updateExplorePanel();
         var tableBody = document.querySelector('#topBuildingsTable tbody');
