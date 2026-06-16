@@ -785,24 +785,30 @@ async function uploadImageToCoze(file) {
     }
 }
 // 图片识别接口
+// 替换原有的cozeImageClassify函数
 function cozeImageClassify(file) {
-    return uploadImageToCoze(file).then(fileId => {
-        return fetch(CHAT_API, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            mode: "cors",
-            body: JSON.stringify({
-                bot_id: COZE_BOT_ID,
-                user_id: "jinling_zhiyou_user",
-                query: "识别这张南京颐和路建筑图片，返回建筑名称、位置、简介、特征、历史、置信度、名人趣事",
-                files: [fileId]
-            })
-        }).then(res => res.json()).then(data => {
-            const msg = data.messages?.find(m => m.role === 'assistant');
-            if (!msg) throw new Error('未获取到识别结果');
-            return JSON.parse(msg.content);
-        });
+  return uploadImageToCoze(file).then(fileId => {
+    return fetch(CHAT_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      mode: "cors",
+      body: JSON.stringify({
+        bot_id: COZE_BOT_ID,
+        user_id: "jinling_zhiyou_user",
+        query: "识别这张南京颐和路建筑图片，严格按照JSON格式返回结果，不要任何额外文本。JSON字段包括：name(建筑名称), address(位置), brief(简介), featureKeywords(特征), history(历史沿革), confidence(置信度0-100), interestingStory(名人趣事)",
+        files: [fileId]
+      })
+    }).then(res => res.json()).then(data => {
+      const msg = data.messages?.find(m => m.role === 'assistant');
+      if (!msg) throw new Error('未获取到识别结果');
+      
+      // 提取JSON部分（处理可能的额外文本）
+      const jsonMatch = msg.content.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('识别结果格式错误');
+      
+      return JSON.parse(jsonMatch[0]);
     });
+  });
 }
 // 初始化高德地图
 function initAmap(lng, lat, name) {
@@ -836,70 +842,53 @@ function resetResultContent() {
     `;
 }
 // 防语法错误版 renderResult
-function renderResult(building, confidence, textData = {}) {
-    const resultContent = document.getElementById('resultContent');
-    const safe = (v) => (v === undefined || v === null ? '--' : String(v));
+// 替换原有的renderResult函数
+function renderResult(result) {
+  const resultContent = document.getElementById('resultContent');
+  const safe = (v) => (v === undefined || v === null ? '--' : String(v));
 
-    let html = `
-        <div class="result-field">
-            <div class="field-label">建筑名称</div>
-            <div class="field-content">${safe(building?.name)}</div>
-        </div>
-        <div class="result-field">
-            <div class="field-label">所在位置</div>
-            <div class="field-content">${safe(building?.address)}</div>
-        </div>
-        <div class="result-field">
-            <div class="field-label">建筑简介</div>
-            <div class="field-content">${safe(textData?.brief)}</div>
-        </div>
-        <div class="result-field">
-            <div class="field-label">建筑特征</div>
-            <div class="field-content">${safe(textData?.featureKeywords)}</div>
-        </div>
-        <div class="result-field">
-            <div class="field-label">历史沿革</div>
-            <div class="field-content">${safe(textData?.history)}</div>
-        </div>
-    `;
+  // 从Coze返回结果中直接获取所有字段
+  const html = `
+    <div class="result-field">
+      <div class="field-label">建筑名称</div>
+      <div class="field-content">${safe(result.name)}</div>
+    </div>
+    <div class="result-field">
+      <div class="field-label">所在位置</div>
+      <div class="field-content">${safe(result.address)}</div>
+    </div>
+    <div id="buildingMap"></div>
+    <div class="result-field">
+      <div class="field-label">建筑简介</div>
+      <div class="field-content">${safe(result.brief)}</div>
+    </div>
+    <div class="result-field">
+      <div class="field-label">建筑特征</div>
+      <div class="field-content">${safe(result.featureKeywords)}</div>
+    </div>
+    <div class="result-field">
+      <div class="field-label">历史沿革</div>
+      <div class="field-content">${safe(result.history)}</div>
+    </div>
+    <div class="result-field">
+      <div class="field-label">识别置信度</div>
+      <div class="field-content ${result.confidence >= 85 ? 'confidence-high' : result.confidence >= 70 ? 'confidence-medium' : 'confidence-low'}">
+        ${safe(result.confidence)}%
+      </div>
+    </div>
+    <div class="result-field">
+      <div class="field-label">名人趣事</div>
+      <div class="field-content">${safe(result.interestingStory)}</div>
+    </div>
+  `;
 
-    let confidenceClass = 'confidence-high';
-    if (confidence < 85) confidenceClass = 'confidence-medium';
-    if (confidence < 70) confidenceClass = 'confidence-low';
+  resultContent.innerHTML = html;
 
-    html += `
-        <div class="result-field">
-            <div class="field-label">识别置信度</div>
-            <div class="field-content ${confidenceClass}">
-                ${confidence || 0}%
-            </div>
-        </div>
-    `;
-
-    let interestingStory = '--';
-    if (textData?.brief?.includes('趣事：')) {
-        interestingStory = textData.brief.split('趣事：')[1] || '--';
-    }
-
-    html += `
-        <div class="result-field">
-            <div class="field-label">名人趣事</div>
-            <div class="field-content">${interestingStory}</div>
-        </div>
-    `;
-
-    resultContent.innerHTML = html;
-
-    if (!document.getElementById('buildingMap')) {
-        resultContent.insertAdjacentHTML(
-            'beforeend',
-            '<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>'
-        );
-    }
-
-    if (building?.gcj_lng && building?.gcj_lat) {
-        initAmap(building.gcj_lng, building.gcj_lat, building?.name);
-    }
+  // 初始化地图
+  const targetBuilding = buildingDB.find(b => b.name === result.name);
+  if (targetBuilding?.gcj_lng && targetBuilding?.gcj_lat) {
+    initAmap(targetBuilding.gcj_lng, targetBuilding.gcj_lat, result.name);
+  }
 }
 // 开始识别流程
 function startRecognition(file) {
