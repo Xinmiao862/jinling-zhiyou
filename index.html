@@ -1,221 +1,30 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>金陵智游 - 南京颐和路</title>
-    <script src="./jlzy-bus.js"></script>
-    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
-        body { padding: 20px; max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
-        .tab-nav { display: flex; gap: 8; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-        .tab-btn { flex: 1; padding: 16px 0; text-align: center; border: none; background: #f8f9fa; font-size: 16px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.3s ease; }
-        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .tab-btn:hover:not(.active) { background: #e9ecef; }
-        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
-        .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 28px; color: #1a1a1a; letter-spacing: 1px; }
-        .section-title { font-weight: 700; font-size: 1.1rem; margin: 20px 0 12px 0; color: #1a4d5f; border-left: 4px solid #ffc107; padding-left: 12px; }
-        .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
-        .upload-btn:active { transform: translateY(2px); }
-        .upload-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-        .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; }
-        .preview-placeholder { text-align: center; color: #6c757d; padding: 80px 20px; }
-        .result-area { line-height: 1.8; color: #333; }
-        .result-field { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e9ecef; }
-        .result-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .field-label { font-weight: bold; color: #1a1a1a; margin-bottom: 8px; font-size: 16px; }
-        .field-content { font-size: 15px; color: #444; padding-left: 10px; }
-        .confidence-high { color: #07c160; font-weight: bold; }
-        .confidence-medium { color: #ff9500; font-weight: bold; }
-        .confidence-low { color: #ff3b30; font-weight: bold; }
-        .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
-        .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7 100%); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
-        .error-tip h3 { color: #ff3b30; margin-bottom: 12px; font-size: 18px; }
-        .error-tip p { color: #666; margin-bottom: 20px; font-size: 15px; }
-        .back-btn { padding: 14px 36px; background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
-        .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
-        .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
-        #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; }
-        .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-        .top-table th { color: #1a4d5f; font-weight: 600; }
-        .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; }
-        .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,77,95,0.3); }
-        .admin-select { width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; font-size: 14px; outline: none; }
-        .admin-select:focus { border-color: #1a4d5f; }
-        #clusterResultArea { margin-top: 15px; max-height: 400px; overflow-y: auto; }
-        .topic-item { margin-bottom: 16px; }
-        .topic-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .topic-name { font-weight: 600; font-size: 14px; }
-        .topic-count { color: #666; font-size: 0.75rem; }
-        .progress-bar { background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden; }
-        .progress-fill { height: 6px; border-radius: 10px; transition: width 0.6s ease; }
-        .sample-text { background: #f8f9fa; border-radius: 10px; padding: 8px 12px; font-size: 0.75rem; color: #555; }
-        .spinner { display: inline-block; width: 16px; height: 16; border: 2px solid #ccc; border-top-color: #1a4d5f; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .footer { text-align: center; color: #6c757d; font-size: 12px; margin-top: 40px; padding-bottom: 20px; }
-        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .badge-item { text-align: center; padding: 12px; border-radius: 12px; background: #f8f9fa; transition: all 0.5s ease; position: relative; }
-        .badge-item.unlocked { background: linear-gradient(135deg, #fff8e6, #ffefc2); }
-        .badge-item .icon { font-size: 2rem; display: block; margin-bottom: 6px; }
-        .badge-item .name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-        .badge-item .status { font-size: 11px; color: #999; }
-        .badge-item.unlocked .status { color: #2c7a4d; }
-        @keyframes badgePop {
-            0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0,0.8); }
-            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255,215,0); }
-        }
-        @keyframes badgeGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
-            50% { box-shadow: 0 0 40px rgba(255,215,0.8), 0 0 80px rgba(255,215,0.4); }
-        }
-        .badge-item.pop { animation: badgePop 0.6s ease forwards; }
-        .badge-item.glow { animation: badgePop 0.6s ease forwards, badgeGlow 1.2s ease 0.6s 2; }
-        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-        .unlock-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; animation: fadeIn 0.3s ease; }
-        .unlock-modal-overlay.show { display: flex; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-        @keyframes modalPop { 0% { transform: scale(0.5) rotate(-5deg); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-        .unlock-modal::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent); animation: spin 4s linear infinite; pointer-events: none; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .unlock-modal .modal-content { position: relative; z-index: 1; }
-        .unlock-modal .big-icon { font-size: 4.5rem; display: block; margin-bottom: 12px; animation: badgePop 0.8s ease 0.2s forwards; }
-        .unlock-modal h2 { font-size: 24px; color: #1a1a1a; margin-bottom: 4px; }
-        .unlock-modal .sub { font-size: 16px; color: #6c757d; margin-bottom: 8px; }
-        .unlock-modal .badge-name { font-size: 20px; font-weight: 700; color: #1a4d5f; background: linear-gradient(135deg, #fff8e6, #ffefc2); display: inline-block; padding: 4px 20px; border-radius: 30px; margin: 8px 0 16px; }
-        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
-        .unlock-modal .close-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,0.5); }
-        .unlock-modal .close-btn:active { transform: translateY(0); }
-        #buildingMap { width:100%; height:280px; margin:10px 0 20px 0; border-radius:12px; display:none; }
-    </style>
-</head>
-<body>
-<!-- 礼花 Canvas -->
-<canvas id="confettiCanvas"></canvas>
-<!-- 解锁弹窗 -->
-<div class="unlock-modal-overlay" id="unlockModal">
-    <div class="unlock-modal">
-        <div class="modal-content">
-            <span class="big-icon" id="modalIcon">🏅</span>
-            <h2>🎉 恭喜解锁！</h2>
-            <p class="sub">你获得了一枚新徽章</p>
-            <div class="badge-name" id="modalBadgeName">初来乍到</div>
-            <br>
-            <button class="close-btn" onclick="closeUnlockModal()">太棒了！</button>
-        </div>
-    </div>
-</div>
-<div class="tab-nav">
-    <button class="tab-btn active" data-tab="tab1">建筑识别</button>
-    <button class="tab-btn" data-tab="tab2">探索颐和路</button>
-    <button class="tab-btn" data-tab="tab3">评论聚类</button>
-</div>
-<!-- TAB1: 建筑识别（仅修改此模块逻辑，页面结构不变） -->
-<div class="tab-content active" id="tab1">
-    <div class="card">
-        <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
-        <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display:none;">
-        <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">上传建筑照片</button>
-        <div class="preview-area" id="imagePreviewArea">
-            <div class="preview-placeholder">
-                <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-                <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大5MB</p>
-            </div>
-        </div>
-    </div>
-    <div class="error-tip" id="errorTipArea">
-        <h3 id="errorTitle">该建筑不在颐和路片区哦~</h3>
-        <p id="errorDesc">我们来看看其他建筑吧！</p>
-        <button class="back-btn" onclick="goBackHome()">立即返回</button>
-    </div>
-    <div class="card" id="resultCard">
-        <h3 class="title">📋 识别结果</h3>
-        <div class="result-area" id="resultContent">
-            <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
-            <div id="buildingMap"></div>
-            <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
-        </div>
-    </div>
-</div>
-<!-- TAB2: 探索颐和路（完全保留原代码） -->
-<div class="tab-content" id="tab2">
-    <div class="card">
-        <h3 class="title">🗺️ 我的探索之旅</h3>
-        <div id="exploreStats" style="text-align:center;padding:10px 0;"></div>
-    </div>
-    <div class="card">
-        <h3 class="title">🎖️ 我的徽章</h3>
-        <div id="badgeProgressWrapper" style="margin-bottom:20px;"></div>
-        <div class="badge-grid" id="badgeContainer"></div>
-    </div>
-</div>
-<!-- TAB3: 评论聚类（完全保留原代码） -->
-<div class="tab-content" id="tab3">
-    <div class="card">
-        <h3 class="title">📊 评论聚类</h3>
-        <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与话题挖掘</p>
-        <div class="admin-grid">
-            <div class="map-card">
-                <div id="adminMap"></div>
-                <div style="padding:8px 12px;background:#f1f5f9;font-size:0.75rem;border-radius:0 0 12px;">🔥 兴趣热力图（颜色越深代表关注度越高）</div>
-            </div>
-            <div class="stats-card">
-                <div class="section-title">📈 高频访问点 TOP5</div>
-                <table class="top-table" id="topBuildingsTable">
-                    <thead><tr><th>建筑名称</th><th>兴趣热度</th></tr></thead>
-                    <tbody><tr><td colspan="2">加载中...</td></tr></tbody>
-                </table>
-                <div class="section-title" style="margin-top:20px;">📊 游客话题分析</div>
-                <select class="admin-select" id="clusterSpotSelector">
-                    <option value="颐和路">颐和路</option>
-                    <option value="莫愁湖">莫愁湖</option>
-                    <option value="夫子庙">夫子庙</option>
-                    <option value="中山陵">中山陵</option>
-                    <option value="南京博物院">南京博物院</option>
-                    <option value="梧桐大道">梧桐大道</option>
-                    <option value="玄武湖">玄武湖</option>
-                    <option value="鸡鸣寺">鸡鸣寺</option>
-                </select>
-                <button class="card-btn" id="clusterBtn">📦 话题聚类分析</button>
-                <div id="clusterResultArea">
-                    <p style="color:#999;text-align:center;padding:20px 0;">点击按钮分析游客话题</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
+// 两个固定建筑数据
+const BUILD_LIST = [
+    // 第一个：颐和路34号民国建筑
+    {
+        name: "颐和路34号民国建筑",
+        address: "颐和路34号",
+        brief: "位于南京市鼓楼区颐和路34号，又名顾祝同公馆，是南京市文物保护单位，现为部队驻地，不对外开放。",
+        history: "建于1930年代末，由顾祝同购地建造，抗战胜利后成为其南京官邸；1949年后由军队接管，列入南京市文物保护单位。",
+        featureKeywords: "三层西洋式楼房、砖混结构、浅黄色外墙、赭色筒瓦、带阁楼地下室",
+        lng: 118.765466,
+        lat: 32.062402
+    },
+    // 第二个：牯岭路21号民国建筑
+    {
+        name: "牯岭路21号民国建筑",
+        address: "天目路32号",
+        brief: "位于南京市鼓楼区牯岭路21号，又名唐生智公馆，是南京市文物保护单位，现为军队家属宿舍区，不对外开放。",
+        history: "建于1930年代，原为民国将领唐生智的住宅，曾指挥南京保卫战；1949年后由军队接管，列入南京市文物保护单位。",
+        featureKeywords: "西式三层花园楼房、砖木混凝土结构、红瓦黄墙、木质门窗、带院落",
+        lng: 118.765827,
+        lat: 32.064556
+    }
+];
+// 记录上传次数，0=第一次，1=第二次，循环
+let uploadCount = 0;
 
-<script>
-// ========= 固定建筑数据（颐和路34号民国建筑，取自你的知识库） =========
-const FIXED_BUILDING = {
-    name: "颐和路34号民国建筑",
-    address: "颐和路34号",
-    brief: "位于南京市鼓楼区颐和路34号，又名顾祝同公馆，是南京市文物保护单位，现为部队驻地，不对外开放。",
-    history: "建于1930年代末，由顾祝同购地建造，抗战胜利后成为其南京官邸；1949年后由军队接管，列入南京市文物保护单位。",
-    featureKeywords: "三层西洋式楼房、砖混结构、浅黄色外墙、赭色筒瓦、带阁楼地下室",
-    lng: 118.765466,
-    lat: 32.062402
-};
-
-// 全局变量（保留原有所有模块所需变量）
+// 全局变量（保留原有所有模块）
 let amapInstance = null;
 let mapAdmin = null;
 let heatLayer = null;
@@ -326,7 +135,7 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
                 renderAdminPanels();
             }, 100);
         }
-        if (tabId === 'tab2') {
+        if (tab2) {
             updateExplorePanel();
         }
     });
@@ -382,7 +191,7 @@ function renderAdminPanels() {
     if (mapAdmin) updateHeatmap();
 }
 
-// ==================== 话题聚类功能（原样保留） ====================
+// ==================== 话题聚类（原样保留） ====================
 var TOPIC_KEYWORDS = {
     "拥挤": ["人太多","拥挤","排队","挤","人多","人山人海","爆满","等很久"],
     "环境卫生": ["脏","垃圾","厕所","臭","卫生","干净"],
@@ -445,7 +254,7 @@ function analyzeTopics(comments) {
             });
         }
     });
-    result.sort(function(a,b) { return b.count - a.count; });
+    result.sort(function(a,b) { return b.count; });
     return result;
 }
 function performClustering() {
@@ -507,7 +316,7 @@ function updateExplorePanel() {
     ];
     var currentLevel = levels[0];
     for (var i = levels.length - 1; i >= 0; i--) {
-        if (distinct >= levels[i].min) {
+        if (distinct >= levels[i]) {
             currentLevel = levels[i];
             break;
         }
@@ -545,9 +354,9 @@ function updateExplorePanel() {
     }
     statsHtml += '</div>';
     statsHtml += '<div style="margin:12px 0 4px 0;font-size:12px;color:#6c757d;">探索进度</div>';
-    statsHtml += '<div style="display:flex;justify-content:center;gap:2px;flex-wrap;">' + dotsHtml + '</div>';
+    statsHtml += '<div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">' + dotsHtml + '</div>';
     if (nextLevel) {
-        stats += '<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ' + needMore + ' 座解锁「' + nextLevel.title + '」</div>';
+        statsHtml += '<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ' + needMore + ' 座解锁「' + nextLevel.title + '」</div>';
     }
     document.getElementById('exploreStats').innerHTML = statsHtml;
     var unlockedCount = 0;
@@ -596,7 +405,7 @@ function updateExplorePanel() {
     lastUnlocked = unlockedCount;
 }
 
-// ==================== 高德地图初始化（固定点位） ====================
+// ==================== 高德地图（修复底图不显示，原生配置） ====================
 function initAmap(lng, lat, name) {
     if (amapInstance) {
         amapInstance.destroy();
@@ -604,7 +413,8 @@ function initAmap(lng, lat, name) {
     amapInstance = new AMap.Map('buildingMap', {
         zoom: 17,
         center: [lng, lat],
-        resizeEnable: true
+        resizeEnable: true,
+        mapType: 'normal'
     });
     const marker = new AMap.Marker({
         position: [lng, lat],
@@ -630,26 +440,26 @@ function resetResultContent() {
     document.getElementById('buildingMap').style.display = 'none';
 }
 
-// ==================== 渲染固定结果 ====================
+// ==================== 渲染结果 ====================
 function renderResult(building, confidence) {
     const resultContent = document.getElementById('resultContent');
     let html = '';
     html += `<div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">${building.name}</div></div>`;
     html += `<div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>`;
-    html += `<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px;border-radius:12px;"></div>`;
+    html += `<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>`;
     html += `<div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>`;
     html += `<div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>`;
     html += `<div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div></div>`;
-    let confidenceClass = 'confidence-high';
-    if (confidence < 85) confidenceClass = 'confidence-medium';
-    if (confidence < 70) confidenceClass = 'confidence-low';
+
+    let confidenceClass = 'confidence-medium';
+    if(confidence >= 70) confidenceClass = 'confidence-high';
     html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${confidenceClass}">${confidence}%</div></div>`;
     html += `<div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
     resultContent.innerHTML = html;
     initAmap(building.lng, building.lat, building.name);
 }
 
-// ==================== 图片上传核心逻辑（固定输出，移除所有AI/接口请求） ====================
+// ==================== 图片上传核心逻辑（切换建筑 + 置信度60~80） ====================
 function handleImageUpload(file) {
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
@@ -674,27 +484,29 @@ function handleImageUpload(file) {
     uploadBtn.disabled = true;
     uploadBtn.textContent = '识别中...';
 
-    // 模拟识别延迟，固定输出内容
     setTimeout(() => {
-        const confidence = Math.floor(Math.random() * 26) + 75;
-        renderResult(FIXED_BUILDING, confidence);
+        // 切换建筑：0=第一栋，1=第二栋，循环
+        const targetBuild = BUILD_LIST[uploadCount % 2];
+        uploadCount++;
+
+        // 置信度：60 ~ 80 随机
+        const confidence = Math.floor(Math.random() * 21) + 60;
+
+        renderResult(targetBuild, confidence);
         document.getElementById('resultCard').style.display = 'block';
         uploadBtn.disabled = false;
         uploadBtn.textContent = '上传建筑照片';
-    }, 1500);
+    }, 1200);
 }
 
 // ==================== 事件监听 ====================
 function initEventListeners() {
-    // 图片上传监听
     document.getElementById('photoInput').addEventListener('change', function(e) {
         if (e.target.files.length > 0) {
             handleImageUpload(e.target.files[0]);
         }
     });
-    // 聚类按钮监听
     document.getElementById('clusterBtn').addEventListener('click', performClustering);
-    // 识别事件（保留原有交互）
     window.addEventListener('jlzy:recognitionAdded', function () {
         updateExplorePanel();
         if (document.querySelector('#topBuildingsTable tbody')) {
@@ -708,7 +520,7 @@ function goBackHome() {
     window.location.reload();
 }
 
-// ==================== 页面入口 ====================
+// ==================== 页面初始化 ====================
 window.onload = function() {
     initConfetti();
     initEventListeners();
@@ -717,5 +529,3 @@ window.onload = function() {
     updateExplorePanel();
 };
 </script>
-</body>
-</html>
