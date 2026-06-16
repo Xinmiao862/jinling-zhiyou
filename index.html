@@ -312,14 +312,12 @@ const KNOWLEDGE_BASE = {
     street: "./街巷空间叙事库.json"
 };
 const MINI_PROGRAM_HOME_URL = "/pages/index/index";
-
 // ========== 重要：替换为你自己的腾讯云云函数公网URL（二选一填写） ==========
 // 示例格式：https://xxxxxxx.scf.tencentcs.com
 const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com/cozeapi"; 
 // 拆分接口路径
 const UPLOAD_API = SCF_BASE_URL + "/upload";
 const CHAT_API = SCF_BASE_URL + "/chat";
-
 let featureDB = [];
 let buildingDB = [];
 let streetDB = [];
@@ -329,12 +327,11 @@ let mapAdmin = null;
 let heatLayer = null;
 let clusterCommentsData = [];
 let lastUnlockedCount = 0;
-
 // 礼花系统
 var confettiCanvas, confettiCtx, confettiPieces = [], confettiRunning = false;
 function initConfetti() {
     confettiCanvas = document.getElementById('confettiCanvas');
-    confettiCtx = confettiCanvas.getContext('2d'); // 修复Bug①：2d而非2
+    confettiCtx = confettiCanvas.getContext('2d');
     resizeConfetti();
     window.addEventListener('resize', resizeConfetti);
 }
@@ -386,7 +383,7 @@ function animateConfetti() {
                 confettiCtx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
             } else {
                 confettiCtx.beginPath();
-                confettiCtx.arc(0, 0, p.size/2, 0, Math.PI * 2); // 修复Bug⑥：补充结束角度
+                confettiCtx.arc(0, 0, p.size/2, 0, Math.PI * 2);
                 confettiCtx.fill();
             }
             confettiCtx.restore();
@@ -437,7 +434,7 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
         }
     });
 });
-// 管理后台地图（修复画布报错）
+// 管理后台地图
 function initAdminMap() {
     if (mapAdmin) return;
     const mapDom = document.getElementById('adminMap');
@@ -450,34 +447,24 @@ function initAdminMap() {
 }
 function updateHeatmap() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
-
     var points = [];
-
     if (records && records.length > 0) {
         records.forEach(function(rec) {
-
             var building = buildingDB.find(function(b) {
                 return b.name === rec.name;
             });
-
             var lat = (building && building.gcj_lat) ? building.gcj_lat : 32.061 + Math.random() * 0.01;
             var lng = (building && building.gcj_lng) ? building.gcj_lng : 118.783 + Math.random() * 0.01;
-
             var conf = (typeof rec.confidence === "number") ? rec.confidence : 80;
-
             points.push([lat, lng, conf / 100]);
         });
     }
-
-    // 🔥 关键保护（防崩）
     if (!points.length) {
         points = [[32.061, 118.783, 0.5]];
     }
-
     if (heatLayer) {
         mapAdmin.removeLayer(heatLayer);
     }
-
     heatLayer = L.heatLayer(points, {
         radius: 25,
         blur: 18,
@@ -503,7 +490,7 @@ function renderAdminPanels() {
     }
     if (mapAdmin) updateHeatmap();
 }
-// 话题聚类（修复score未定义BUG）
+// 话题聚类
 var TOPIC_KEYWORDS = {
     "拥挤": ["人太多","拥挤","排队","挤","人多","人山人海","爆满","等很久","排长队"],
     "环境卫生": ["脏","垃圾","厕所","臭","卫生","干净","乱","垃圾桶","异味"],
@@ -542,7 +529,7 @@ function analyzeTopics(comments) {
     comments.forEach(function(comment) {
         topics.forEach(function(topic) {
             var keywords = TOPIC_KEYWORDS[topic];
-            let score = 0; // 修复变量未定义
+            let score = 0;
             keywords.forEach(function(kw) {
                 if (comment.content.indexOf(kw) !== -1) score++;
             });
@@ -676,7 +663,6 @@ function updateExplorePanel() {
         newlyUnlocked = true;
         newBadgeIndex = unlockedCount - 1;
     }
-    // 修复Bug②：判断BADGE_CONFIG[0].need而非整个对象
     if (
         unlockedCount === 1 &&
         lastUnlockedCount === 0 &&
@@ -693,7 +679,6 @@ function updateExplorePanel() {
         let achieved = distinct - prevNeed;
         currentProgress = Math.min((achieved / range) * 100, 100);
     } else currentProgress = 100;
-
     var progressHtml = '<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">';
     progressHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">';
     progressHtml += '<span style="font-size:14px;font-weight:600;">徽章进度</span>';
@@ -708,7 +693,6 @@ function updateExplorePanel() {
     });
     progressHtml += '</div></div>';
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
-
     var container = document.getElementById('badgeContainer');
     var html = '';
     BADGE_CONFIG.forEach(function(b, index) {
@@ -719,12 +703,11 @@ function updateExplorePanel() {
     });
     container.innerHTML = html;
     if (newlyUnlocked && newBadgeIndex >= 0) {
-        // 修复Bug③：传递name而非整个对象
         setTimeout(() => showUnlockModal(BADGE_CONFIG[newBadgeIndex].icon, BADGE_CONFIG[newBadgeIndex].name), 100);
     }
     lastUnlockedCount = unlockedCount;
 }
-// 图片上传至云函数（已移除Authorization请求头）
+// 图片上传至云函数
 async function uploadImageToCoze(file) {
     const formData = new FormData();
     formData.append("file", file);
@@ -749,7 +732,6 @@ function cozeImageClassify(file) {
                 files: [fileId]
             })
         }).then(res => res.json()).then(data => {
-            // 修复Bug⑪：可选链操作符防止messages不存在
             const msg = data.messages?.find(m => m.role === 'assistant');
             if (!msg) throw new Error('未获取到识别结果');
             return JSON.parse(msg.content);
@@ -758,7 +740,6 @@ function cozeImageClassify(file) {
 }
 // 初始化高德地图
 function initAmap(lng, lat, name) {
-    // 修复Bug④：接收name参数而非对象
     if (amapInstance) {
         amapInstance.destroy();
     }
@@ -767,7 +748,6 @@ function initAmap(lng, lat, name) {
         center: [lng, lat],
         resizeEnable: true
     });
-    // 修复Bug⑩：规范Marker添加方式
     const marker = new AMap.Marker({
         position: [lng, lat],
         title: name
@@ -778,8 +758,6 @@ function initAmap(lng, lat, name) {
 // 重置结果区域
 function resetResultContent() {
     const resultContent = document.getElementById('resultContent');
-    // 修复Bug⑦：移除嵌套的result-field
-    // 修复Bug⑧：补充闭合标签
     resultContent.innerHTML = `
         <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
         <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
@@ -791,107 +769,108 @@ function resetResultContent() {
         <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
     `;
 }
-// 渲染识别结果
+// ========== 按照修改思路文档 完全替换为修复版 renderResult ==========
 function renderResult(building, confidence, textData = {}) {
-
     const resultContent = document.getElementById('resultContent');
 
-    if (!resultContent) {
-        console.error("resultContent 不存在，请检查HTML");
-        return;
-    }
+    const safe = (v) => (v === undefined || v === null ? '--' : String(v));
 
-    const featureKeywords = Array.isArray(textData.featureKeywords)
-        ? textData.featureKeywords.join('、')
-        : (textData.featureKeywords || '--');
+    let html = `
+        <div class="result-field">
+            <div class="field-label">建筑名称</div>
+            <div class="field-content">${safe(building?.name)}</div>
+        </div>
 
-    let html = '';
+        <div class="result-field">
+            <div class="field-label">所在位置</div>
+            <div class="field-content">${safe(building?.address)}</div>
+        </div>
 
-    html += `<div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">${building.name || '--'}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address || '--'}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${textData.brief || '--'}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${featureKeywords}</div></div>`;
-    html += `<div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${textData.history || '--'}</div></div>`;
+        <div class="result-field">
+            <div class="field-label">建筑简介</div>
+            <div class="field-content">${safe(textData?.brief)}</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">建筑特征</div>
+            <div class="field-content">${safe(textData?.featureKeywords)}</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">历史沿革</div>
+            <div class="field-content">${safe(textData?.history)}</div>
+        </div>
+    `;
 
     let confidenceClass = 'confidence-high';
     if (confidence < 85) confidenceClass = 'confidence-medium';
     if (confidence < 70) confidenceClass = 'confidence-low';
 
-    html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${confidenceClass}">${confidence}%</div></div>`;
+    html += `
+        <div class="result-field">
+            <div class="field-label">识别置信度</div>
+            <div class="field-content ${confidenceClass}">
+                ${confidence || 0}%
+            </div>
+        </div>
+    `;
 
     let interestingStory = '--';
-    if (typeof textData.brief === 'string' && textData.brief.includes('趣事：')) {
+    if (textData?.brief?.includes('趣事：')) {
         interestingStory = textData.brief.split('趣事：')[1] || '--';
     }
 
-    html += `<div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">${interestingStory}</div></div>`;
+    html += `
+        <div class="result-field">
+            <div class="field-label">名人趣事</div>
+            <div class="field-content">${interestingStory}</div>
+        </div>
+    `;
 
     resultContent.innerHTML = html;
 
-    // 安全创建地图容器
-    let mapContainer = document.getElementById('buildingMap');
-
-    if (!mapContainer) {
-        mapContainer = document.createElement('div');
-        mapContainer.id = 'buildingMap';
-        mapContainer.style.width = '100%';
-        mapContainer.style.height = '280px';
-        mapContainer.style.margin = '10px 0 20px 0';
-        mapContainer.style.borderRadius = '12px';
-
-        resultContent.appendChild(mapContainer);
+    if (!document.getElementById('buildingMap')) {
+        resultContent.insertAdjacentHTML(
+            'beforeend',
+            '<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>'
+        );
     }
 
-    // 初始化地图
-    if (building.gcj_lng && building.gcj_lat) {
-        initAmap(building.gcj_lng, building.gcj_lat, building.name);
+    if (building?.gcj_lng && building?.gcj_lat) {
+        initAmap(building.gcj_lng, building.gcj_lat, building?.name);
     }
 }
 // 开始识别流程
 function startRecognition(file) {
-
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
-
     resetResultContent();
-
     const reader = new FileReader();
-
     reader.onload = function(e) {
         const previewArea = document.getElementById('imagePreviewArea');
         previewArea.innerHTML = "";
-
         const img = document.createElement("img");
         img.src = e.target.result;
         img.style.width = "100%";
         img.style.height = "100%";
         img.style.objectFit = "cover";
         img.style.borderRadius = "12px";
-
         previewArea.appendChild(img);
     };
-
     reader.readAsDataURL(file);
-
     const uploadBtn = document.getElementById('uploadBtn');
     uploadBtn.disabled = true;
     uploadBtn.textContent = '识别中...';
-
     cozeImageClassify(file)
         .then(result => {
-
+            console.log("upload response", result);
             let confidence = Math.floor(Math.random() * 26) + 75;
-
             const targetBuilding = buildingDB.find(b => b.name === result.name);
-
             if (!targetBuilding) {
                 throw new Error("建筑不在数据库");
             }
-
             renderResult(targetBuilding, confidence, result);
-
             document.getElementById('resultCard').style.display = 'block';
-
         })
         .catch(err => {
             document.getElementById('errorTipArea').style.display = 'block';
@@ -904,17 +883,20 @@ function startRecognition(file) {
 }
 // 返回首页
 function goBackHome() {
-    // 小程序跳转
     if (window.JLZY) {
         window.JLZY.navigateTo(MINI_PROGRAM_HOME_URL);
     } else {
-        // H5刷新
         window.location.reload();
     }
 }
 // 初始化事件监听
 function initEventListeners() {
-    // 文件选择
+    // 文件选择绑定
+    document.getElementById('fileInput')?.onchange = function(e) {
+        if (e.target.files.length > 0) {
+            startRecognition(e.target.files[0]);
+        }
+    };
     document.getElementById('photoInput').addEventListener('change', function(e) {
         if (e.target.files.length > 0) {
             startRecognition(e.target.files[0]);
@@ -924,7 +906,6 @@ function initEventListeners() {
     // 聚类按钮
     document.getElementById('clusterBtn').addEventListener('click', performClustering);
     
-    // 修复Bug⑫：安全的事件监听
     window.addEventListener('jlzy:recognitionAdded', function () {
         updateExplorePanel();
         if (document.querySelector('#topBuildingsTable tbody')) {
@@ -945,6 +926,9 @@ function loadKnowledgeBase() {
         alert('初始化失败，请刷新页面重试');
     });
 }
+function loadClusterData(){
+    fetch('/comments_data.json');
+}
 // 页面初始化
 window.onload = function() {
     initConfetti();
@@ -952,7 +936,6 @@ window.onload = function() {
     loadKnowledgeBase();
     loadClusterData();
     
-    // 初始化探索面板
     updateExplorePanel();
 };
 </script>
