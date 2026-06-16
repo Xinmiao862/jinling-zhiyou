@@ -450,19 +450,39 @@ function initAdminMap() {
 }
 function updateHeatmap() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
+
     var points = [];
-    if (records.length > 0) {
-        points = records.map(function(rec) {
-            var building = buildingDB.find(function(b) { return b.name === rec.name; });
-            return [building ? building.gcj_lat : 32.06 + Math.random()*0.02,
-                    building ? building.gcj_lng : 118.78 + Math.random()*0.02,
-                    rec.confidence / 90];
+
+    if (records && records.length > 0) {
+        records.forEach(function(rec) {
+
+            var building = buildingDB.find(function(b) {
+                return b.name === rec.name;
+            });
+
+            var lat = (building && building.gcj_lat) ? building.gcj_lat : 32.061 + Math.random() * 0.01;
+            var lng = (building && building.gcj_lng) ? building.gcj_lng : 118.783 + Math.random() * 0.01;
+
+            var conf = (typeof rec.confidence === "number") ? rec.confidence : 80;
+
+            points.push([lat, lng, conf / 100]);
         });
-    } else {
-        points = [[32.061,118.783,0.9],[32.064,118.785,0.7],[32.056,118.786,0.8],[32.058,118.780,0.6],[32.063,118.788,0.5]];
     }
-    if (heatLayer) mapAdmin.removeLayer(heatLayer);
-    heatLayer = L.heatLayer(points, { radius: 25, blur: 20 }).addTo(mapAdmin);
+
+    // 🔥 关键保护（防崩）
+    if (!points.length) {
+        points = [[32.061, 118.783, 0.5]];
+    }
+
+    if (heatLayer) {
+        mapAdmin.removeLayer(heatLayer);
+    }
+
+    heatLayer = L.heatLayer(points, {
+        radius: 25,
+        blur: 18,
+        maxZoom: 17
+    }).addTo(mapAdmin);
 }
 function renderAdminPanels() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
@@ -504,7 +524,7 @@ function generateMockComments() {
     });
     return comments;
 }
-function loadClusterData() {
+function fetch('/comments_data.json') {
     return fetch('./comments_data.json').then(function(response) {
         if (!response.ok) throw new Error('文件不存在');
         return response.json();
