@@ -943,9 +943,9 @@ window.onload = function() {
     uploadBtn.disabled = true;
     uploadBtn.innerText = "正在加载知识库...";
     Promise.all([
-        fetch(KNOWLEDGE_BASE.feature).then(function(r) { return r.json(); }).catch(function() { return []; }),
-        fetch(KNOWLEDGE_BASE.building).then(function(r) { return r.json(); }).catch(function() { return []; }),
-        fetch(KNOWLEDGE_BASE.street).then(function(r) { return r.json(); }).catch(function() { return []; })
+        fetch(KNOWLEDGE_BASE_URL.feature).then(function(r) { return r.json(); }).catch(function() { return []; }),
+        fetch(KNOWLEDGE_BASE_URL.building).then(function(r) { return r.json(); }).catch(function() { return []; }),
+        fetch(KNOWLEDGE_BASE_URL.street).then(function(r) { return r.json(); }).catch(function() { return []; })
     ]).then(function(results) {
         featureDB = results[0];
         buildingDB = results[1];
