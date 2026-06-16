@@ -915,24 +915,38 @@ function goBackHome() {
 }
 // 初始化事件监听
 function initEventListeners() {
-    // 文件选择绑定
-    document.getElementById('fileInput')?.onchange = function(e) {
-        if (e.target.files.length > 0) {
-            startRecognition(e.target.files[0]);
-        }
-    };
-    document.getElementById('photoInput').addEventListener('change', function(e) {
-        if (e.target.files.length > 0) {
-            startRecognition(e.target.files[0]);
-        }
-    });
-    
-    // 聚类按钮
-    document.getElementById('clusterBtn').addEventListener('click', performClustering);
-    
+    // 文件选择绑定（兼容写法）
+    var fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.onchange = function(e) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
+                startRecognition(e.target.files[0]);
+            }
+        };
+    }
+
+    // 主要上传按钮绑定（photoInput）
+    var photoInput = document.getElementById('photoInput');
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
+                startRecognition(e.target.files[0]);
+            }
+        });
+    }
+
+    // 聚类按钮（安全绑定）
+    var clusterBtn = document.getElementById('clusterBtn');
+    if (clusterBtn) {
+        clusterBtn.addEventListener('click', performClustering);
+    }
+
+    // 自定义事件监听（安全写法）
     window.addEventListener('jlzy:recognitionAdded', function () {
         updateExplorePanel();
-        if (document.querySelector('#topBuildingsTable tbody')) {
+
+        var tableBody = document.querySelector('#topBuildingsTable tbody');
+        if (tableBody) {
             renderAdminPanels();
         }
     });
