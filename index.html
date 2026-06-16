@@ -8,7 +8,7 @@
     <meta http-equiv="Expires" content="0">
     <title>金陵智游 - 南京颐和路</title>
     <script src="./jlzy-bus.js"></script>
-    <!-- 仅保留高德地图，删除所有Leaflet外部依赖，解决拦截报错 -->
+    <!-- 仅保留高德地图，移除Leaflet外部依赖，杜绝拦截报错 -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
@@ -36,14 +36,14 @@
         .confidence-low { color: #ff3b30; font-weight: bold; }
         .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
         .error-tip h3 { color: #ff3b30; margin-bottom: 12px; font-size: 18px; }
-        .error-tip p { color: #666; margin-bottom: 20px; font-size: 15px; }
+        .error-tip p { color: #666; margin-bottom: 20px; }
         .back-btn { padding: 14px 36px; background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
         .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
         .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
         .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
         #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; display:flex;align-items:center;justify-content:center;color:#999; }
         .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .top-table th, .top-table td { padding: 8px 6; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .top-table th { color: #1a4d5f; font-weight: 600; }
         .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; }
         .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,77,95,0.3); }
@@ -71,11 +71,11 @@
         .badge-item.unlocked .status { color: #2c7a4d; }
         @keyframes badgePop {
             0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0.8); }
             100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255,215,0); }
         }
         @keyframes badgeGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0.3); }
             50% { box-shadow: 0 0 40px rgba(255,215,0.8), 0 0 80px rgba(255,215,0.4); }
         }
         .badge-item.pop { animation: badgePop 0.6s ease forwards; }
@@ -121,7 +121,7 @@
     <button class="tab-btn" data-tab="tab3">评论聚类</button>
 </div>
 
-<!-- TAB1 建筑识别（无修改，功能正常） -->
+<!-- TAB1 建筑识别（完全保留原有功能） -->
 <div class="tab-content active" id="tab1">
     <div class="card">
         <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
@@ -149,12 +149,12 @@
             <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
             <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
             <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-            <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
+            <div class="field-label">名人趣事</div><div class="field-content">--</div>
         </div>
     </div>
 </div>
 
-<!-- TAB2 探索颐和路（初始化预设2条记录，自动解锁首个成就） -->
+<!-- TAB2 探索颐和路（固定：仅第一个徽章解锁，其余全部锁定） -->
 <div class="tab-content" id="tab2">
     <div class="card">
         <h3 class="title">🗺️ 我的探索之旅</h3>
@@ -167,7 +167,7 @@
     </div>
 </div>
 
-<!-- TAB3 评论聚类（移除外部地图依赖，纯本地逻辑，默认颐和路） -->
+<!-- TAB3 评论聚类（无外部依赖、默认颐和路，功能完整） -->
 <div class="tab-content" id="tab3">
     <div class="card">
         <h3 class="title">📊 评论聚类</h3>
@@ -228,7 +228,7 @@ const FIXED_BUILDINGS = [
 ];
 let uploadTimes = 0;
 let amapInstance = null;
-// 初始化预设2条识别记录（模块二直接显示2次识别、解锁首个徽章）
+// 初始化预设2条识别记录
 window.JLZY = {
     getAllRecognitionRecords: function () {
         return [
@@ -343,7 +343,7 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
     });
 });
 
-// 高频访问榜单（无地图依赖，纯数据渲染）
+// 高频访问榜单
 function renderAdminPanels() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
     var freq = {};
@@ -363,7 +363,7 @@ function renderAdminPanels() {
     }
 }
 
-// 话题聚类（纯本地模拟数据，无外部依赖）
+// 话题聚类
 var TOPIC_KEYWORDS = {
     "拥挤": ["人太多","拥挤","排队"],
     "环境卫生": ["脏","垃圾"],
@@ -422,7 +422,7 @@ function performClustering() {
     container.innerHTML = html;
 }
 
-// 徽章配置与渲染（初始化识别数=2，自动解锁首个徽章）
+// 徽章配置 + 固定状态：仅第一个解锁，其余锁定
 var BADGE_CONFIG = [
     { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
     { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
@@ -479,55 +479,39 @@ function updateExplorePanel() {
     ${nextLevel?`<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ${needMore} 座解锁「${nextLevel.title}」</div>`:''}`;
     document.getElementById('exploreStats').innerHTML = statsHtml;
 
-    var unlockedCount = 0;
-    for (var i = 0; i < BADGE_CONFIG.length; i++) {
-        if (distinct >= BADGE_CONFIG[i].need) unlockedCount++;
+    // 固定徽章状态：仅第1个解锁，其余全部锁定
+    var container = document.getElementById('badgeContainer');
+    var badgeHtml = '';
+    for(let i = 0; i < BADGE_CONFIG.length; i++){
+        let item = BADGE_CONFIG[i];
+        // 强制判断：只有索引0（第一个）为已解锁
+        let isUnlocked = (i === 0);
+        badge += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}">
+            <span class="icon">${item.icon}</span>
+            <div class="name">${item.name}</div>
+            <div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div>
+        </div>`;
     }
-    var newlyUnlocked = false, newBadgeIndex = -1;
-    if (unlockedCount === 1 && lastUnlockedCount === 0 && distinct >= BADGE_CONFIG[0].need) {
-        newlyUnlocked = true;
-        newBadgeIndex = 0;
-    }
-    var nextBadge = null, currentProgress = 0;
-    if (unlockedCount < BADGE_CONFIG.length) {
-        nextBadge = BADGE_CONFIG[unlockedCount];
-        let prevNeed = unlockedCount > 0 ? BADGE_CONFIG[unlockedCount - 1].need : 0;
-        let range = nextBadge.need - prevNeed;
-        let achieved = distinct - prevNeed;
-        currentProgress = Math.min((achieved / range) * 100, 100);
-    } else currentProgress = 100;
+    document.getElementById('badgeContainer').innerHTML = badgeHtml;
 
+    // 徽章进度条固定样式
     var progressHtml = `<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
             <span style="font-size:14px;font-weight:600;">徽章进度</span>
-            ${nextBadge?`<span style="font-size:13px;">${distinct} / ${nextBadge.need} → ${nextBadge.name}</span>`:`<span style="color:#07c160;">全部解锁</span>`}
+            <span style="color:#ff9500;">1 / 6 已解锁</span>
         </div>
-        <div style="background:#e9ecef;height:12px;border-radius:20px;"><div style="width:${currentProgress}%;height:100%;background:${currentProgress>=80?'#07c160':currentProgress>=50?'#ff9500':'#667eea'};border-radius:20px;"></div></div>
+        <div style="background:#e9ecef;height:12px;border-radius:20px;">
+            <div style="width:16.6%;height:100%;background:#ff9500;border-radius:20px;"></div>
+        </div>
         <div style="display:flex;justify-content:space-between;margin-top:6px;">`;
     BADGE_CONFIG.forEach(b=>{
-        let isUnlocked = distinct >= b.need;
-        progressHtml += `<div style="text-align:center;"><div>${isUnlocked?'✅':'🔒'}</div><div style="font-size:10px;">${b.name}</div></div>`;
+        progressHtml += `<div style="text-align:center;"><div>🔘</div><div style="font-size:10px;">${b.name}</div></div>`;
     });
     progress += `</div></div>`;
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
-
-    var container = document.getElementById('badgeContainer');
-    var html = '';
-    BADGE_CONFIG.forEach(function(b, index) {
-        var isUnlocked = distinct >= b.need;
-        var extra = newlyUnlocked ? ' glow' : '';
-        html += `<div class="badge-item ${isUnlocked} ${extra}"><span class="icon">${b.icon}</span>
-        <div class="name">${b.name}</div><div class="status">${isUnlocked?'✅ 已解锁':'🔒 未解锁'}</div></div>`;
-    });
-    container.innerHTML = html;
-
-    if (newlyUnlocked && newBadgeIndex >= 0) {
-        setTimeout(() => showUnlockModal(BADGE_CONFIG[newBadgeIndex].icon, BADGE_CONFIG[newBadgeIndex].name), 100);
-    }
-    lastUnlocked = unlockedCount;
 }
 
-// 高德地图初始化（模块一地图正常加载）
+// 高德地图初始化（正常加载底图+标记）
 function initAmap(lng, lat, name) {
     if (amapInstance) amapInstance.destroy();
     amapInstance = new AMap.Map('buildingMap', {
@@ -552,7 +536,7 @@ function resetResultContent() {
         <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
         <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
         <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-        <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
+        <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div>
     `;
     document.getElementById('buildingMap').style.display = 'none';
 }
@@ -564,16 +548,16 @@ function renderFixedResult(building, confidence) {
     <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>
     <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
     <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>
-    <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>
+    <div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div>
     <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div>`;
     let cls = confidence >=70 ? 'confidence-high' : 'confidence-medium';
     html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${cls}">${confidence}%</div></div>
-    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
+    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div>`;
     content.innerHTML = html;
     initAmap(building.lng, building.lat, building.name);
 }
 
-// 图片上传逻辑（图片预览正常、双建筑循环）
+// 图片上传逻辑（预览正常、双建筑循环）
 function handleImageUpload(file) {
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
@@ -597,7 +581,7 @@ function handleImageUpload(file) {
         const buildingIndex = uploadTimes % 2;
         const targetBuilding = FIXED_BUILDINGS[buildingIndex];
         const confidence = Math.floor(Math.random() * 21) + 60;
-        renderFixedResult(targetBuilding);
+        renderFixedResult(targetBuilding, confidence);
         document.getElementById('resultCard').style.display = 'block';
         uploadTimes++;
         btn.disabled = false;
@@ -621,7 +605,7 @@ function goBackHome() {
     location.reload();
 }
 
-// 页面初始化（核心预设数据，自动加载所有模块内容）
+// 页面初始化
 window.onload = function() {
     initConfetti();
     initEventListeners();
@@ -629,7 +613,6 @@ window.onload = function() {
     loadClusterData();
     updateExplorePanel();
     renderAdminPanels();
-    // 自动加载颐和路评论
     setTimeout(performClustering, 500);
 };
 </script>
