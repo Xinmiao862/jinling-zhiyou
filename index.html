@@ -511,15 +511,18 @@ function generateMockComments() {
     });
     return comments;
 }
-function fetch('/comments_data.json') {
-    return fetch('./comments_data.json').then(function(response) {
-        if (!response.ok) throw new Error('文件不存在');
-        return response.json();
-    }).then(function(data) {
-        clusterCommentsData = data;
-    }).catch(function() {
-        clusterCommentsData = generateMockComments();
-    });
+function loadClusterData() {
+    fetch('./comments_data.json')
+        .then(function(response) {
+            if (!response.ok) throw new Error('文件不存在');
+            return response.json();
+        })
+        .then(function(data) {
+            clusterCommentsData = data;
+        })
+        .catch(function() {
+            clusterCommentsData = generateMockComments();
+        });
 }
 function analyzeTopics(comments) {
     var topicStats = {};
@@ -709,15 +712,36 @@ function updateExplorePanel() {
 }
 // 图片上传至云函数
 async function uploadImageToCoze(file) {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(UPLOAD_API, {
-        method: "POST",
-        body: formData
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = async function () {
+            try {
+                const base64 = reader.result.split(',')[1];
+
+                const res = await fetch(UPLOAD_API, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        file: base64
+                    })
+                });
+
+                const data = await res.json();
+
+                if (data.code !== 0) throw new Error(data.msg || "上传失败");
+
+                resolve(data.data.id);
+            } catch (e) {
+                reject(e);
+            }
+        };
+
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
     });
-    const data = await res.json();
-    if (data.code !== 0) throw new Error("上传失败");
-    return data.data.id;
 }
 // 图片识别接口
 function cozeImageClassify(file) {
@@ -927,7 +951,17 @@ function loadKnowledgeBase() {
     });
 }
 function loadClusterData(){
-    fetch('/comments_data.json');
+    fetch('./comments_data.json')
+        .then(function(res){
+            if(!res.ok) throw new Error();
+            return res.json();
+        })
+        .then(function(data){
+            clusterCommentsData = data;
+        })
+        .catch(function(){
+            clusterCommentsData = generateMockComments();
+        });
 }
 // 页面初始化
 window.onload = function() {
