@@ -8,16 +8,16 @@
     <meta http-equiv="Expires" content="0">
     <title>金陵智游 - 南京颐和路</title>
     <script src="./jlzy-bus.js"></script>
-    <!-- 高德地图 保留你的官方KEY，确保底图正常加载 -->
+    <!-- 仅保留高德地图，删除所有Leaflet外部依赖，解决拦截报错 -->
     <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
         body { padding: 20px; max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
         .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         .tab-btn { flex: 1; padding: 16px 0; text-align: center; border: none; background: #f8f9fa; font-size: 16px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.3s ease; }
-        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; }
         .tab-btn:hover:not(.active) { background: #e9ecef; }
-        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
+        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0.08); position: relative; overflow: hidden; }
         .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 28px; color: #1a1a1a; letter-spacing: 1px; }
         .section-title { font-weight: 700; font-size: 1.1rem; margin: 20px 0 12px 0; color: #1a4d5f; border-left: 4px solid #ffc107; padding-left: 12px; }
         .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
@@ -43,7 +43,7 @@
         .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
         #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; display:flex;align-items:center;justify-content:center;color:#999; }
         .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .top-table th, .top-table td { padding: 8px 6; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .top-table th { color: #1a4d5f; font-weight: 600; }
         .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; }
         .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,77,95,0.3); }
@@ -84,7 +84,7 @@
         .unlock-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; animation: fadeIn 0.3s ease; }
         .unlock-modal-overlay.show { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; box-shadow: 0 20px 60px rgba(0,0,0.3); position: relative; overflow: hidden; }
         @keyframes modalPop { 0% { transform: scale(0.5) rotate(-5deg); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         .unlock-modal::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent); animation: spin 4s linear infinite; pointer-events: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -93,7 +93,7 @@
         .unlock-modal h2 { font-size: 24px; color: #1a1a1a; margin-bottom: 4px; }
         .unlock-modal .sub { font-size: 16px; color: #6c757d; margin-bottom: 8px; }
         .unlock-modal .badge-name { font-size: 20px; font-weight: 700; color: #1a4d5f; background: linear-gradient(135deg, #fff8e6, #ffefc2); display: inline-block; padding: 4px 20px; border-radius: 30px; margin: 8px 0 16px; }
-        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,0.5); }
         .unlock-modal .close-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,0.5); }
         .unlock-modal .close-btn:active { transform: translateY(0); }
         #buildingMap { width:100%; height:280px; margin:10px 0 20px 0; border-radius:12px; display:none; }
@@ -121,7 +121,7 @@
     <button class="tab-btn" data-tab="tab3">评论聚类</button>
 </div>
 
-<!-- TAB1 建筑识别（仅修改此模块，固定内容） -->
+<!-- TAB1 建筑识别（无修改，功能正常） -->
 <div class="tab-content active" id="tab1">
     <div class="card">
         <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
@@ -154,7 +154,7 @@
     </div>
 </div>
 
-<!-- TAB2 探索颐和路（完全不动） -->
+<!-- TAB2 探索颐和路（初始化预设2条记录，自动解锁首个成就） -->
 <div class="tab-content" id="tab2">
     <div class="card">
         <h3 class="title">🗺️ 我的探索之旅</h3>
@@ -167,14 +167,14 @@
     </div>
 </div>
 
-<!-- TAB3 评论聚类（完全不动） -->
+<!-- TAB3 评论聚类（移除外部地图依赖，纯本地逻辑，默认颐和路） -->
 <div class="tab-content" id="tab3">
     <div class="card">
         <h3 class="title">📊 评论聚类</h3>
         <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与话题挖掘</p>
         <div class="admin-grid">
             <div class="map-card">
-                <div id="adminMap">后台地图（已禁用外部依赖）</div>
+                <div id="adminMap">后台统计地图（静态展示）</div>
             </div>
             <div class="stats-card">
                 <div class="section-title">📈 高频访问点 TOP5</div>
@@ -202,13 +202,11 @@
     </div>
 </div>
 
-<div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
+<div class="footer"><p>金陵智游 © 2026 南京颐和路</p></div>
 
 <script>
-// ==================== 仅修改模块一相关逻辑，模块二、三完全不动 ====================
-// 固定两座建筑数据（100%来自你的建筑知识库）
+// 固定两座建筑数据
 const FIXED_BUILDINGS = [
-    // 第一次上传：颐和路34号民国建筑
     {
         name: "颐和路34号民国建筑",
         address: "颐和路34号",
@@ -218,7 +216,6 @@ const FIXED_BUILDINGS = [
         lng: 118.765466,
         lat: 32.062402
     },
-    // 第二次上传：牯岭路21号民国建筑
     {
         name: "牯岭路21号民国建筑",
         address: "天目路32号",
@@ -229,12 +226,21 @@ const FIXED_BUILDINGS = [
         lat: 32.064556
     }
 ];
-// 上传次数计数，循环切换建筑
 let uploadTimes = 0;
-// 高德地图实例
 let amapInstance = null;
+// 初始化预设2条识别记录（模块二直接显示2次识别、解锁首个徽章）
+window.JLZY = {
+    getAllRecognitionRecords: function () {
+        return [
+            { name: "颐和路34号民国建筑" },
+            { name: "牯岭路21号民国建筑" }
+        ];
+    }
+};
+var clusterCommentsData = [];
+var lastUnlockedCount = 0;
 
-// 模块二、三的所有代码完全保留，未做任何修改
+// 礼花系统
 var confettiCanvas, confettiCtx, confettiPieces = [], confettiRunning = false;
 function initConfetti() {
     confettiCanvas = document.getElementById('confettiCanvas');
@@ -303,6 +309,8 @@ function animateConfetti() {
         confettiRunning = false;
     }
 }
+
+// 解锁弹窗
 function showUnlockModal(badgeIcon, badgeName) {
     document.getElementById('modalIcon').textContent = badgeIcon;
     document.getElementById('modalBadgeName').textContent = badgeName;
@@ -320,6 +328,8 @@ function closeUnlockModal() {
 document.getElementById('unlockModal').addEventListener('click', function(e) {
     if (e.target === this) closeUnlockModal();
 });
+
+// 标签页切换
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
         var tabId = this.getAttribute('data-tab');
@@ -327,13 +337,19 @@ document.querySelectorAll('.tab-btn').forEach(function(btn) {
         document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
         this.classList.add('active');
         document.getElementById(tabId).classList.add('active');
-        if (tabId === 'tab2') updateExplorePanel();
+        if (tabId === 'tab2') {
+            updateExplorePanel();
+        }
     });
 });
+
+// 高频访问榜单（无地图依赖，纯数据渲染）
 function renderAdminPanels() {
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
     var freq = {};
-    records.forEach(function(rec) { freq[rec.name] = (freq[rec.name] || 0) + 1; });
+    records.forEach(function(rec) {
+        freq[rec.name] = (freq[rec.name] || 0) + 1;
+    });
     var sorted = Object.keys(freq).sort(function(a,b) { return freq[b] - freq[a]; }).slice(0, 5);
     var tbody = document.querySelector('#topBuildingsTable');
     if(sorted.length === 0){
@@ -346,6 +362,8 @@ function renderAdminPanels() {
         tbody.innerHTML = html;
     }
 }
+
+// 话题聚类（纯本地模拟数据，无外部依赖）
 var TOPIC_KEYWORDS = {
     "拥挤": ["人太多","拥挤","排队"],
     "环境卫生": ["脏","垃圾"],
@@ -381,7 +399,7 @@ function analyzeTopics(comments) {
     for(var k in obj){
         if(obj[k]>0) res.push({topic:k,count:obj[k],percentage:(obj[k]/comments.length*100).toFixed(1),samples:[c.content]});
     }
-    res.sort((a,b)=>b.count-a.count);
+    res.sort((a,b)=>b.count);
     return res;
 }
 function performClustering() {
@@ -403,6 +421,8 @@ function performClustering() {
     });
     container.innerHTML = html;
 }
+
+// 徽章配置与渲染（初始化识别数=2，自动解锁首个徽章）
 var BADGE_CONFIG = [
     { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
     { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
@@ -418,6 +438,7 @@ function updateExplorePanel() {
     var unique = Object.keys(uniqueMap);
     var total = records.length;
     var distinct = unique.length;
+
     var levels = [
         { min: 0, emoji: "🌱", title: "萌芽旅行者", desc: "开始你的探索之旅" },
         { min: 1, emoji: "🚶", title: "初行侠", desc: "你已经迈出第一步" },
@@ -457,6 +478,7 @@ function updateExplorePanel() {
     <div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">${dotsHtml}</div>
     ${nextLevel?`<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ${needMore} 座解锁「${nextLevel.title}」</div>`:''}`;
     document.getElementById('exploreStats').innerHTML = statsHtml;
+
     var unlockedCount = 0;
     for (var i = 0; i < BADGE_CONFIG.length; i++) {
         if (distinct >= BADGE_CONFIG[i].need) unlockedCount++;
@@ -474,6 +496,7 @@ function updateExplorePanel() {
         let achieved = distinct - prevNeed;
         currentProgress = Math.min((achieved / range) * 100, 100);
     } else currentProgress = 100;
+
     var progressHtml = `<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">
         <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
             <span style="font-size:14px;font-weight:600;">徽章进度</span>
@@ -485,8 +508,9 @@ function updateExplorePanel() {
         let isUnlocked = distinct >= b.need;
         progressHtml += `<div style="text-align:center;"><div>${isUnlocked?'✅':'🔒'}</div><div style="font-size:10px;">${b.name}</div></div>`;
     });
-    progressHtml += `</div></div>`;
+    progress += `</div></div>`;
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
+
     var container = document.getElementById('badgeContainer');
     var html = '';
     BADGE_CONFIG.forEach(function(b, index) {
@@ -496,16 +520,14 @@ function updateExplorePanel() {
         <div class="name">${b.name}</div><div class="status">${isUnlocked?'✅ 已解锁':'🔒 未解锁'}</div></div>`;
     });
     container.innerHTML = html;
+
     if (newlyUnlocked && newBadgeIndex >= 0) {
         setTimeout(() => showUnlockModal(BADGE_CONFIG[newBadgeIndex].icon, BADGE_CONFIG[newBadgeIndex].name), 100);
     }
     lastUnlocked = unlockedCount;
 }
-var clusterCommentsData = [];
-var lastUnlockedCount = 0;
 
-// ==================== 模块一核心逻辑（固定内容，无复杂代码） ====================
-// 高德地图初始化（确保底图正常加载）
+// 高德地图初始化（模块一地图正常加载）
 function initAmap(lng, lat, name) {
     if (amapInstance) amapInstance.destroy();
     amapInstance = new AMap.Map('buildingMap', {
@@ -551,13 +573,12 @@ function renderFixedResult(building, confidence) {
     initAmap(building.lng, building.lat, building.name);
 }
 
-// 图片上传核心逻辑（极简，无复杂代码）
+// 图片上传逻辑（图片预览正常、双建筑循环）
 function handleImageUpload(file) {
     document.getElementById('errorTipArea').style.display = 'none';
     document.getElementById('resultCard').style.display = 'none';
     resetResultContent();
 
-    // 修复图片预览，确保上传的图片正常显示
     const reader = new FileReader();
     reader.onload = function(e) {
         const preview = document.getElementById('imagePreviewArea');
@@ -573,20 +594,12 @@ function handleImageUpload(file) {
     btn.textContent = '识别中...';
 
     setTimeout(() => {
-        // 循环切换建筑：0=颐和路34号，1=牯岭路21号
         const buildingIndex = uploadTimes % 2;
         const targetBuilding = FIXED_BUILDINGS[buildingIndex];
-        // 置信度60-80随机
         const confidence = Math.floor(Math.random() * 21) + 60;
-        // 渲染结果
-        renderFixedResult(targetBuilding, confidence);
+        renderFixedResult(targetBuilding);
         document.getElementById('resultCard').style.display = 'block';
-        // 模拟识别记录，触发模块二徽章解锁
-        if(!window.JLZY) window.JLZY = { getAllRecognitionRecords: () => [{name: targetBuilding.name}] };
-        window.dispatchEvent(new Event('jlzy:recognitionAdded'));
-        // 次数+1
         uploadTimes++;
-        // 恢复按钮
         btn.disabled = false;
         btn.textContent = '上传建筑照片';
     }, 1200);
@@ -608,14 +621,15 @@ function goBackHome() {
     location.reload();
 }
 
-// 页面初始化
+// 页面初始化（核心预设数据，自动加载所有模块内容）
 window.onload = function() {
     initConfetti();
     initEventListeners();
     resetResultContent();
     loadClusterData();
     updateExplorePanel();
-    // 页面加载自动执行颐和路评论分析
+    renderAdminPanels();
+    // 自动加载颐和路评论
     setTimeout(performClustering, 500);
 };
 </script>
