@@ -13,14 +13,14 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
         body { padding: 20px; max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
-        .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+        .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; /* 移除导航栏阴影 */ }
         .tab-btn { flex: 1; padding: 16px 0; text-align: center; border: none; background: #f8f9fa; font-size: 16px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.3s ease; }
         .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; }
         .tab-btn:hover:not(.active) { background: #e9ecef; }
-        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0.08); position: relative; overflow: hidden; }
+        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; /* 关键修改：删除卡片box-shadow阴影 */ position: relative; overflow: hidden; }
         .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 28px; color: #1a1a1a; letter-spacing: 1px; }
         .section-title { font-weight: 700; font-size: 1.1rem; margin: 20px 0 12px 0; color: #1a4d5f; border-left: 4px solid #ffc107; padding-left: 12px; }
-        .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+        .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; /* 移除按钮外阴影 */ }
         .upload-btn:active { transform: translateY(2px); }
         .upload-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
         .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; overflow: hidden; }
@@ -39,14 +39,14 @@
         .error-tip p { color: #666; margin-bottom: 20px; }
         .back-btn { padding: 14px 36px; background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
         .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
-        .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
+        .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; /* 移除子卡片阴影 */ }
+        .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; /* 移除子卡片阴影 */ }
         #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; display:flex;align-items:center;justify-content:center;color:#999; }
         .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
         .top-table th { color: #1a4d5f; font-weight: 600; }
-        .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; }
-        .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,77,95,0.3); }
+        .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; /* 移除按钮悬浮阴影 */ }
+        .card-btn:hover { transform: translateY(-2px); }
         .admin-select { width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; font-size: 14px; outline: none; }
         .admin-select:focus { border-color: #1a4d5f; }
         #clusterResultArea { margin-top: 15px; max-height: 400px; overflow-y: auto; }
@@ -63,7 +63,7 @@
         .tab-content.active { display: block; }
         .footer { text-align: center; color: #6c757d; font-size: 12px; margin-top: 40px; padding-bottom: 20px; }
         .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .badge-item { text-align: center; padding: 12px; border-radius: 12px; background: #f8f9fa; transition: all 0.5s ease; position: relative; }
+        .badge-item { text-align: center; padding: 12px; border-radius: 12px; background: #f8f9fa; transition: all 0.5s ease; position: relative; /* 移除徽章卡片阴影 */ }
         .badge-item.unlocked { background: linear-gradient(135deg, #fff8e6, #ffefc2); }
         .badge-item .icon { font-size: 2rem; display: block; margin-bottom: 6px; }
         .badge-item .name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
@@ -71,12 +71,12 @@
         .badge-item.unlocked .status { color: #2c7a4d; }
         @keyframes badgePop {
             0% { transform: scale(0.5); opacity: 0; }
-            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0.8); }
-            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255,215,0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
         }
         @keyframes badgeGlow {
-            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0.3); }
-            50% { box-shadow: 0 0 40px rgba(255,215,0.8), 0 0 80px rgba(255,215,0.4); }
+            0%, 100% { }
+            50% { }
         }
         .badge-item.pop { animation: badgePop 0.6s ease forwards; }
         .badge-item.glow { animation: badgePop 0.6s ease forwards, badgeGlow 1.2s ease 0.6s 2; }
@@ -84,7 +84,7 @@
         .unlock-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; animation: fadeIn 0.3s ease; }
         .unlock-modal-overlay.show { display: flex; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; box-shadow: 0 20px 60px rgba(0,0,0.3); position: relative; overflow: hidden; }
+        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; /* 仅弹窗保留阴影，页面主体全部去除 */ box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
         @keyframes modalPop { 0% { transform: scale(0.5) rotate(-5deg); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
         .unlock-modal::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent); animation: spin 4s linear infinite; pointer-events: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -93,8 +93,8 @@
         .unlock-modal h2 { font-size: 24px; color: #1a1a1a; margin-bottom: 4px; }
         .unlock-modal .sub { font-size: 16px; color: #6c757d; margin-bottom: 8px; }
         .unlock-modal .badge-name { font-size: 20px; font-weight: 700; color: #1a4d5f; background: linear-gradient(135deg, #fff8e6, #ffefc2); display: inline-block; padding: 4px 20px; border-radius: 30px; margin: 8px 0 16px; }
-        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,0.5); }
-        .unlock-modal .close-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(102,126,0.5); }
+        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; /* 移除按钮阴影 */ }
+        .unlock-modal .close-btn:hover { transform: translateY(-2px); }
         .unlock-modal .close-btn:active { transform: translateY(0); }
         #buildingMap { width:100%; height:280px; margin:10px 0 20px 0; border-radius:12px; display:none; }
     </style>
@@ -149,7 +149,7 @@
             <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
             <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
             <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-            <div class="field-label">名人趣事</div><div class="field-content">--</div>
+            <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
         </div>
     </div>
 </div>
@@ -267,8 +267,7 @@ function fireConfetti(count) {
             color: colors[Math.floor(Math.random() * colors.length)],
             gravity: 0.2 + Math.random() * 0.15,
             life: 1,
-            decay: 0.004 + Math.random() * 0.006,
-            shape: Math.random() > 0.5 ? 'rect' : 'circle'
+            decay: 0.004 + Math.random() * 0.006.random() > 0.5 ? 'rect' : 'circle'
         });
     }
     if (!confettiRunning) {
@@ -412,7 +411,7 @@ function performClustering() {
         return;
     }
     var data = analyzeTopics(list);
-    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 '+list+' 条评论</div>';
+    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 '+list.length+' 条评论</div>';
     data.forEach(function(item){
         html += `<div class="topic-item">
             <div class="topic-header"><span class="topic-name">${item.topic}</span><span class="topic-count">${item.count}次 (${item.percentage}%)</span></div>
@@ -484,9 +483,8 @@ function updateExplorePanel() {
     var badgeHtml = '';
     for(let i = 0; i < BADGE_CONFIG.length; i++){
         let item = BADGE_CONFIG[i];
-        // 强制判断：只有索引0（第一个）为已解锁
         let isUnlocked = (i === 0);
-        badge += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}">
+        badgeHtml += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}">
             <span class="icon">${item.icon}</span>
             <div class="name">${item.name}</div>
             <div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div>
@@ -507,7 +505,7 @@ function updateExplorePanel() {
     BADGE_CONFIG.forEach(b=>{
         progressHtml += `<div style="text-align:center;"><div>🔘</div><div style="font-size:10px;">${b.name}</div></div>`;
     });
-    progress += `</div></div>`;
+    progressHtml += `</div></div>`;
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
 }
 
@@ -548,11 +546,11 @@ function renderFixedResult(building, confidence) {
     <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>
     <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
     <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>
-    <div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div>
+    <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>
     <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div>`;
     let cls = confidence >=70 ? 'confidence-high' : 'confidence-medium';
     html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${cls}">${confidence}%</div></div>
-    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div>`;
+    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
     content.innerHTML = html;
     initAmap(building.lng, building.lat, building.name);
 }
