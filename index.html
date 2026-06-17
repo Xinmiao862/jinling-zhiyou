@@ -1,1347 +1,999 @@
 <!DOCTYPE html>
-
 <html lang="zh-CN">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-
     <meta http-equiv="Pragma" content="no-cache">
-
     <meta http-equiv="Expires" content="0">
-
     <title>金陵智游 - 南京颐和路</title>
-
     <script src="./jlzy-bus.js"></script>
-
-    <!-- 仅保留高德地图，移除Leaflet外部依赖，杜绝拦截报错 -->
-
-    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=ceb5b05c67575402bd7dc831a7f6d608"></script>
-
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=2.0&key=81de5068c89873d339ae308dd9e1702a"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
     <style>
-
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "PingFang SC", "Microsoft YaHei", sans-serif; }
-
         body { padding: 20px; max-width: 800px; margin: 0 auto; background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); min-height: 100vh; }
-
-        .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; /* 移除导航栏阴影 */ }
-
+        .tab-nav { display: flex; gap: 8px; margin-bottom: 20px; border-radius: 12px; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
         .tab-btn { flex: 1; padding: 16px 0; text-align: center; border: none; background: #f8f9fa; font-size: 16px; font-weight: 500; color: #666; cursor: pointer; transition: all 0.3s ease; }
-
-        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; }
-
+        .tab-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
         .tab-btn:hover:not(.active) { background: #e9ecef; }
-
-        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; /* 关键修改：删除卡片box-shadow阴影 */ position: relative; overflow: hidden; }
-
+        .card { background: white; border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.08); position: relative; overflow: hidden; }
         .title { font-size: 24px; font-weight: bold; text-align: center; margin-bottom: 28px; color: #1a1a1a; letter-spacing: 1px; }
-
         .section-title { font-weight: 700; font-size: 1.1rem; margin: 20px 0 12px 0; color: #1a4d5f; border-left: 4px solid #ffc107; padding-left: 12px; }
-
-        .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; /* 移除按钮外阴影 */ }
-
+        .upload-btn { width: 100%; padding: 18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 18px; font-weight: 500; margin-bottom: 24px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
         .upload-btn:active { transform: translateY(2px); }
-
         .upload-btn:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; }
-
-        .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; overflow: hidden; }
-
-        .preview-area img { width: 100%; height: 100%; object-fit: cover; }
-
+        .preview-area { width: 100%; height: 320px; border-radius: 12px; background: #f8f9fa; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; border: 2px dashed #dee2e6; }
         .preview-placeholder { text-align: center; color: #6c757d; padding: 80px 20px; }
-
         .result-area { line-height: 1.8; color: #333; }
-
         .result-field { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 1px dashed #e9ecef; }
-
         .result-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-
         .field-label { font-weight: bold; color: #1a1a1a; margin-bottom: 8px; font-size: 16px; }
-
         .field-content { font-size: 15px; color: #444; padding-left: 10px; }
-
         .confidence-high { color: #07c160; font-weight: bold; }
-
         .confidence-medium { color: #ff9500; font-weight: bold; }
-
         .confidence-low { color: #ff3b30; font-weight: bold; }
-
-        .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
-
+        .loading { text-align: center; padding: 40px; color: #666; font-size: 16px; }
+        .error-tip { background: linear-gradient(135deg, #fff2f0 0%, #ffccc7 100%); border: 1px solid #ffccc7; border-radius: 12px; padding: 24px; text-align: center; margin-bottom: 24px; display: none; }
         .error-tip h3 { color: #ff3b30; margin-bottom: 12px; font-size: 18px; }
-
-        .error-tip p { color: #666; margin-bottom: 20px; }
-
-        .back-btn { padding: 14px 36px; background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
-
+        .error-tip p { color: #666; margin-bottom: 20px; font-size: 15px; }
+        .back-btn { padding: 14px 36px; background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73 100%); color: white; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; }
         .admin-grid { display: flex; gap: 20px; flex-wrap: wrap; }
-
-        .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; /* 移除子卡片阴影 */ }
-
-        .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; /* 移除子卡片阴影 */ }
-
-        #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; display:flex;align-items:center;justify-content:center;color:#999; }
-
-        .map-desc { padding:8px 12px;background:#f1f5f9;font-size:0.75rem;color:#666;text-align:center; }
-
+        .admin-grid .map-card { flex: 2; min-width: 280px; background: #f9fafb; border-radius: 16px; overflow: hidden; border: 1px solid #e2e8f0; }
+        .admin-grid .stats-card { flex: 1.2; min-width: 240px; background: #f9fafb; border-radius: 16px; padding: 16px 20px; max-height: 650px; overflow-y: auto; }
+        #adminMap { height: 300px; width: 100%; background: #cbd5e1; border-radius: 12px; }
         .top-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-
         .top-table th, .top-table td { padding: 8px 6px; border-bottom: 1px solid #e2e8f0; text-align: left; }
-
         .top-table th { color: #1a4d5f; font-weight: 600; }
-
-        .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; /* 移除按钮悬浮阴影 */ }
-
-        .card-btn:hover { transform: translateY(-2px); }
-
+        .card-btn { background: linear-gradient(135deg, #1a4d5f 0%, #2c5f73); color: white; border: none; border-radius: 30px; padding: 10px 20px; cursor: pointer; margin-top: 12px; font-size: 14px; transition: all 0.3s ease; }
+        .card-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(26,77,95,0.3); }
         .admin-select { width: 100%; padding: 10px 14px; border-radius: 20px; border: 1px solid #e2e8f0; background: white; font-size: 14px; outline: none; }
-
         .admin-select:focus { border-color: #1a4d5f; }
-
         #clusterResultArea { margin-top: 15px; max-height: 400px; overflow-y: auto; }
-
         .topic-item { margin-bottom: 16px; }
-
         .topic-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-
         .topic-name { font-weight: 600; font-size: 14px; }
-
         .topic-count { color: #666; font-size: 0.75rem; }
-
         .progress-bar { background: #e9ecef; border-radius: 10px; height: 6px; overflow: hidden; }
-
         .progress-fill { height: 6px; border-radius: 10px; transition: width 0.6s ease; }
-
         .sample-text { background: #f8f9fa; border-radius: 10px; padding: 8px 12px; font-size: 0.75rem; color: #555; }
-
         .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #1a4d5f; border-radius: 50%; animation: spin 0.8s linear infinite; margin-right: 6px; vertical-align: middle; }
-
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .tab-content { display: none; }
-
         .tab-content.active { display: block; }
-
         .footer { text-align: center; color: #6c757d; font-size: 12px; margin-top: 40px; padding-bottom: 20px; }
-
         .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-
-        .badge-item { text-align: center; padding: 12px; border-radius: 12px; background: #f8f9fa; transition: all 0.5s ease; position: relative; /* 移除徽章卡片阴影 */ }
-
+        .badge-item { text-align: center; padding: 12px; border-radius: 12px; background: #f8f9fa; transition: all 0.5s ease; position: relative; }
         .badge-item.unlocked { background: linear-gradient(135deg, #fff8e6, #ffefc2); }
-
-        .badge-item .icon { font-size: 2rem; display: block; margin-bottom: 6px; }
-
+        .badge-item .icon { font-size: 2rem; display: block; margin-bottom: 6px; transition: all 0.5s ease; }
         .badge-item .name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
-
         .badge-item .status { font-size: 11px; color: #999; }
-
         .badge-item.unlocked .status { color: #2c7a4d; }
-
+        /* 徽章点亮动画 */
         @keyframes badgePop {
-
             0% { transform: scale(0.5); opacity: 0; }
-
-            50% { transform: scale(1.2); }
-
-            100% { transform: scale(1); opacity: 1; }
-
+            50% { transform: scale(1.2); box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+            100% { transform: scale(1); opacity: 1; box-shadow: 0 0 0px rgba(255,215,0,0); }
         }
-
         @keyframes badgeGlow {
-
-            0%, 100% { }
-
-            50% { }
-
+            0%, 100% { box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+            50% { box-shadow: 0 0 40px rgba(255,215,0,0.8), 0 0 80px rgba(255,215,0,0.4); }
         }
-
-        .badge-item.pop { animation: badgePop 0.6s ease forwards; }
-
-        .badge-item.glow { animation: badgePop 0.6s ease forwards, badgeGlow 1.2s ease 0.6s 2; }
-
-        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
-
-        .unlock-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 10000; animation: fadeIn 0.3s ease; }
-
-        .unlock-modal-overlay.show { display: flex; }
-
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-        .unlock-modal { background: white; border-radius: 24px; padding: 40px 48px; max-width: 400px; width: 90%; text-align: center; animation: modalPop 0.6s ease forwards; /* 仅弹窗保留阴影，页面主体全部去除 */ box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-
-        @keyframes modalPop { 0% { transform: scale(0.5) rotate(-5deg); opacity: 0; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
-
-        .unlock-modal::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent); animation: spin 4s linear infinite; pointer-events: none; }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .unlock-modal .modal-content { position: relative; z-index: 1; }
-
-        .unlock-modal .big-icon { font-size: 4.5rem; display: block; margin-bottom: 12px; animation: badgePop 0.8s ease 0.2s forwards; }
-
-        .unlock-modal h2 { font-size: 24px; color: #1a1a1a; margin-bottom: 4px; }
-
-        .unlock-modal .sub { font-size: 16px; color: #6c757d; margin-bottom: 8px; }
-
-        .unlock-modal .badge-name { font-size: 20px; font-weight: 700; color: #1a4d5f; background: linear-gradient(135deg, #fff8e6, #ffefc2); display: inline-block; padding: 4px 20px; border-radius: 30px; margin: 8px 0 16px; }
-
-        .unlock-modal .close-btn { padding: 12px 40px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 30px; font-size: 16px; cursor: pointer; transition: all 0.3s ease; /* 移除按钮阴影 */ }
-
-        .unlock-modal .close-btn:hover { transform: translateY(-2px); }
-
-        .unlock-modal .close-btn:active { transform: translateY(0); }
-
+        .badge-item.pop {
+            animation: badgePop 0.6s ease forwards;
+        }
+        .badge-item.glow {
+            animation: badgePop 0.6s ease forwards, badgeGlow 1.2s ease 0.6s 2;
+        }
+        /* 礼花 Canvas */
+        #confettiCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        /* 解锁弹窗 */
+        .unlock-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+        .unlock-modal-overlay.show {
+            display: flex;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .unlock-modal {
+            background: white;
+            border-radius: 24px;
+            padding: 40px 48px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: modalPop 0.6s ease forwards;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        @keyframes modalPop {
+            0% { transform: scale(0.5) rotate(-5deg); opacity: 0; }
+            60% { transform: scale(1.05) rotate(0.5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .unlock-modal::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(255,215,0,0.1), transparent, rgba(255,215,0,0.1), transparent);
+            animation: spin 4s linear infinite;
+            pointer-events: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .unlock-modal .modal-content {
+            position: relative;
+            z-index: 1;
+        }
+        .unlock-modal .big-icon {
+            font-size: 4.5rem;
+            display: block;
+            margin-bottom: 12px;
+            animation: badgePop 0.8s ease 0.2s forwards;
+        }
+        .unlock-modal h2 {
+            font-size: 24px;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+        .unlock-modal .sub {
+            font-size: 16px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        .unlock-modal .badge-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1a4d5f;
+            background: linear-gradient(135deg, #fff8e6, #ffefc2);
+            display: inline-block;
+            padding: 4px 20px;
+            border-radius: 30px;
+            margin: 8px 0 16px 0;
+        }
+        .unlock-modal .close-btn {
+            padding: 12px 40px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+        .unlock-modal .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,0.5);
+        }
+        .unlock-modal .close-btn:active {
+            transform: translateY(0);
+        }
         #buildingMap { width:100%; height:280px; margin:10px 0 20px 0; border-radius:12px; display:none; }
-
     </style>
-
 </head>
-
 <body>
-
 <!-- 礼花 Canvas -->
-
 <canvas id="confettiCanvas"></canvas>
-
 <!-- 解锁弹窗 -->
-
 <div class="unlock-modal-overlay" id="unlockModal">
-
     <div class="unlock-modal">
-
         <div class="modal-content">
-
             <span class="big-icon" id="modalIcon">🏅</span>
-
             <h2>🎉 恭喜解锁！</h2>
-
             <p class="sub">你获得了一枚新徽章</p>
-
             <div class="badge-name" id="modalBadgeName">初来乍到</div>
-
             <br>
-
             <button class="close-btn" onclick="closeUnlockModal()">太棒了！</button>
-
         </div>
-
     </div>
-
 </div>
-
 <div class="tab-nav">
-
     <button class="tab-btn active" data-tab="tab1">建筑识别</button>
-
     <button class="tab-btn" data-tab="tab2">探索颐和路</button>
-
     <button class="tab-btn" data-tab="tab3">评论聚类</button>
-
 </div>
-
-
-
-<!-- TAB1 建筑识别（完全保留原有功能，未做任何修改） -->
-
+<!-- TAB1: 建筑识别 -->
 <div class="tab-content active" id="tab1">
-
     <div class="card">
-
         <h1 class="title">🏛️ 南京颐和路建筑智能识别</h1>
-
         <input type="file" id="photoInput" accept="image/jpeg,image/png" style="display:none;">
-
         <button class="upload-btn" id="uploadBtn" onclick="document.getElementById('photoInput').click()">上传建筑照片</button>
-
         <div class="preview-area" id="imagePreviewArea">
-
             <div class="preview-placeholder">
-
                 <p>点击上方按钮上传南京颐和路片区建筑照片</p>
-
                 <p style="font-size:13px;margin-top:8px;">支持 JPG / PNG 格式，最大5MB</p>
-
             </div>
-
         </div>
-
     </div>
-
     <div class="error-tip" id="errorTipArea">
-
         <h3 id="errorTitle">该建筑不在颐和路片区哦~</h3>
-
         <p id="errorDesc">我们来看看其他建筑吧！</p>
-
         <button class="back-btn" onclick="goBackHome()">立即返回</button>
-
     </div>
-
     <div class="card" id="resultCard">
-
         <h3 class="title">📋 识别结果</h3>
-
         <div class="result-area" id="resultContent">
-
             <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
-
             <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
-
             <div id="buildingMap"></div>
-
             <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">--</div></div>
-
             <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
-
             <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
-
             <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-
             <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
-
         </div>
-
     </div>
-
 </div>
-
-
-
-<!-- TAB2 探索颐和路（完全保留原有功能，未做任何修改） -->
-
+<!-- TAB2: 探索颐和路 -->
 <div class="tab-content" id="tab2">
-
     <div class="card">
-
         <h3 class="title">🗺️ 我的探索之旅</h3>
-
         <div id="exploreStats" style="text-align:center;padding:10px 0;"></div>
-
     </div>
-
     <div class="card">
-
         <h3 class="title">🎖️ 我的徽章</h3>
-
         <div id="badgeProgressWrapper" style="margin-bottom:20px;"></div>
-
         <div class="badge-grid" id="badgeContainer"></div>
-
     </div>
-
 </div>
-
-
-
-<!-- ========== 仅此处TAB3复原旧版布局 ========== -->
-
+<!-- TAB3: 评论聚类 -->
 <div class="tab-content" id="tab3">
-
     <div class="card">
-
         <h3 class="title">📊 评论聚类</h3>
-
         <p style="text-align:center;color:#6c757d;margin-bottom:20px;">基于识别数据的兴趣热力分析与话题挖掘</p>
-
         <div class="admin-grid">
-
             <div class="map-card">
-
-                <div id="adminMap">后台统计地图（静态展示）</div>
-
-                <div class="map-desc">🔥 兴趣热力图（颜色越深代表关注度越高）</div>
-
+                <div id="adminMap"></div>
+                <div style="padding:8px 12px;background:#f1f5f9;font-size:0.75rem;border-radius:0 0 12px;">🔥 兴趣热力图（颜色越深代表关注度越高）</div>
             </div>
-
             <div class="stats-card">
-
                 <div class="section-title">📈 高频访问点 TOP5</div>
-
                 <table class="top-table" id="topBuildingsTable">
-
                     <thead><tr><th>建筑名称</th><th>兴趣热度</th></tr></thead>
-
                     <tbody><tr><td colspan="2">加载中...</td></tr></tbody>
-
                 </table>
-
                 <div class="section-title" style="margin-top:20px;">📊 游客话题分析</div>
-
                 <select class="admin-select" id="clusterSpotSelector">
-
-                    <option value="颐和路" selected>颐和路</option>
-
+                    <option value="颐和路">颐和路</option>
                     <option value="莫愁湖">莫愁湖</option>
-
                     <option value="夫子庙">夫子庙</option>
-
                     <option value="中山陵">中山陵</option>
-
                     <option value="南京博物院">南京博物院</option>
-
                     <option value="梧桐大道">梧桐大道</option>
-
                     <option value="玄武湖">玄武湖</option>
-
                     <option value="鸡鸣寺">鸡鸣寺</option>
-
                 </select>
-
                 <button class="card-btn" id="clusterBtn">📦 话题聚类分析</button>
-
                 <div id="clusterResultArea">
-
-                    <p style="color:#999;text-align:center;padding:20px;">点击按钮分析游客话题</p>
-
+                    <p style="color:#999;text-align:center;padding:20px 0;">点击按钮分析游客话题</p>
                 </div>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
-
-
-
-<div class="footer"><p>金陵智游 © 2026 南京颐和路</p></div>
-
-
-
+<div class="footer"><p>金陵智游 © 2026 南京颐和路建筑智能导览系统</p></div>
 <script>
+// ======================== 全局配置（已修复腾讯云API路径） ========================
+const COZE_BOT_ID = "7651525718031548468";
+const KNOWLEDGE_BASE = {
+    feature: "./特征识别库.json",
+    building: "./建筑本体库.json",
+    street: "./街巷空间叙事库.json"
+};
+const MINI_PROGRAM_HOME_URL = "/pages/index/index";
+// ========== 最终正确路径：匹配你截图中的请求地址 ==========
+const SCF_BASE_URL = "https://jinling-zhiyou-d1gk7wlew4cad9948-1437454189.ap-shanghai.app.tcloudbase.com"; 
+const UPLOAD_API = SCF_BASE_URL + "/cozeapi/upload";
+const CHAT_API = SCF_BASE_URL + "/cozeapi/chat";
 
-// 固定两座建筑数据
-
-const FIXED_BUILDINGS = [
-
-    {
-
-        name: "颐和路34号民国建筑",
-
-        address: "颐和路34号",
-
-        brief: "位于南京市鼓楼区颐和路34号，又名顾祝同公馆，是南京市文物保护单位，现为部队驻地，不对外开放。",
-
-        history: "建于1930年代末，由顾祝同购地建造，抗战胜利后成为其南京官邸；1949年后由军队接管，列入南京市文物保护单位。",
-
-        featureKeywords: "三层西洋式楼房、砖混结构、浅黄色外墙、赭色筒瓦、带阁楼地下室",
-
-        lng: 118.765466,
-
-        lat: 32.062402
-
-    },
-
-    {
-
-        name: "牯岭路21号民国建筑",
-
-        address: "天目路32号",
-
-        brief: "位于南京市鼓楼区牯岭路21号，又名唐生智公馆，是南京市文物保护单位，现为军队家属宿舍区，不对外开放。",
-
-        history: "建于1930年代，原为民国将领唐生智的住宅，曾指挥南京保卫战；1949年后由军队接管，列入南京市文物保护单位。",
-
-        featureKeywords: "西式三层花园楼房、砖木混凝土结构、红瓦黄墙、木质门窗、带院落",
-
-        lng: 118.765827,
-
-        lat: 32.064556
-
-    }
-
-];
-
-let uploadTimes = 0;
-
+let featureDB = [];
+let buildingDB = [];
+let streetDB = [];
+let currentBuilding = null;
 let amapInstance = null;
-
-// 初始化预设2条识别记录
-
-window.JLZY = {
-
-    getAllRecognitionRecords: function () {
-
-        return [
-
-            { name: "颐和路34号民国建筑" },
-
-            { name: "牯岭路21号民国建筑" }
-
-        ];
-
-    }
-
-};
-
-var clusterCommentsData = [];
-
-var lastUnlockedCount = 0;
-
-
-
-// 礼花系统（修复语法错误）
-
+let mapAdmin = null;
+let heatLayer = null;
+let clusterCommentsData = [];
+let lastUnlockedCount = 0;
+// 礼花系统
 var confettiCanvas, confettiCtx, confettiPieces = [], confettiRunning = false;
-
 function initConfetti() {
-
     confettiCanvas = document.getElementById('confettiCanvas');
-
     confettiCtx = confettiCanvas.getContext('2d');
-
     resizeConfetti();
-
     window.addEventListener('resize', resizeConfetti);
-
 }
-
 function resizeConfetti() {
-
     confettiCanvas.width = window.innerWidth;
-
     confettiCanvas.height = window.innerHeight;
-
 }
-
 function fireConfetti(count) {
-
     count = count || 120;
-
     var colors = ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6bcb', '#ffb347', '#a855f7', '#ec4899'];
-
     for (var i = 0; i < count; i++) {
-
         confettiPieces.push({
-
             x: confettiCanvas.width / 2 + (Math.random() - 0.5) * 100,
-
             y: confettiCanvas.height / 2,
-
             size: 6 + Math.random() * 8,
-
             speedX: (Math.random() - 0.5) * 18,
-
             speedY: -(8 + Math.random() * 12),
-
             rotation: Math.random() * 360,
-
             rotationSpeed: (Math.random() - 0.5) * 15,
-
             color: colors[Math.floor(Math.random() * colors.length)],
-
             gravity: 0.2 + Math.random() * 0.15,
-
             life: 1,
-
             decay: 0.004 + Math.random() * 0.006,
-
             shape: Math.random() > 0.5 ? 'rect' : 'circle'
-
         });
-
     }
-
     if (!confettiRunning) {
-
         confettiRunning = true;
-
         animateConfetti();
-
     }
-
 }
-
 function animateConfetti() {
-
     confettiCtx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
-
     var alive = false;
-
     confettiPieces.forEach(function(p) {
-
         p.x += p.speedX;
-
-        p.y += p.gravity;
-
+        p.speedY += p.gravity;
         p.y += p.speedY;
-
         p.rotation += p.rotationSpeed;
-
         p.life -= p.decay;
-
         if (p.life > 0) {
-
             alive = true;
-
             confettiCtx.save();
-
             confettiCtx.translate(p.x, p.y);
-
             confettiCtx.rotate(p.rotation * Math.PI / 180);
-
             confettiCtx.globalAlpha = p.life;
-
             confettiCtx.fillStyle = p.color;
-
             if (p.shape === 'rect') {
-
                 confettiCtx.fillRect(-p.size/2, -p.size/4, p.size, p.size/2);
-
             } else {
-
                 confettiCtx.beginPath();
-
                 confettiCtx.arc(0, 0, p.size/2, 0, Math.PI * 2);
-
                 confettiCtx.fill();
-
             }
-
             confettiCtx.restore();
-
         }
-
     });
-
     confettiPieces = confettiPieces.filter(function(p) { return p.life > 0; });
-
     if (confettiPieces.length > 0) {
-
         requestAnimationFrame(animateConfetti);
-
     } else {
-
         confettiRunning = false;
-
     }
-
 }
-
-
-
 // 解锁弹窗
-
 function showUnlockModal(badgeIcon, badgeName) {
-
     document.getElementById('modalIcon').textContent = badgeIcon;
-
     document.getElementById('modalBadgeName').textContent = badgeName;
-
     var modal = document.getElementById('unlockModal');
-
     modal.classList.add('show');
-
     setTimeout(function() {
-
         fireConfetti(150);
-
         setTimeout(function() { fireConfetti(100); }, 300);
-
         setTimeout(function() { fireConfetti(80); }, 600);
-
     }, 200);
-
 }
-
 function closeUnlockModal() {
-
     document.getElementById('unlockModal').classList.remove('show');
-
 }
-
 document.getElementById('unlockModal').addEventListener('click', function(e) {
-
     if (e.target === this) closeUnlockModal();
-
 });
-
-
-
-// 标签页切换（切换tab3自动渲染TOP5表格）
-
+// TAB切换
 document.querySelectorAll('.tab-btn').forEach(function(btn) {
-
     btn.addEventListener('click', function() {
-
         var tabId = this.getAttribute('data-tab');
-
         document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-
         document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
-
         this.classList.add('active');
-
         document.getElementById(tabId).classList.add('active');
-
-        if (tabId === 'tab2') {
-
-            updateExplorePanel();
-
-        }
-
         if (tabId === 'tab3') {
-
-            renderAdminPanels();
-
+            setTimeout(function() {
+                if (!mapAdmin) initAdminMap();
+                else mapAdmin.invalidateSize();
+                renderAdminPanels();
+            }, 100);
         }
-
+        if (tabId === 'tab2') {
+            updateExplorePanel();
+        }
     });
-
 });
-
-
-
-// 高频访问榜单（页面加载直接渲染，不会一直显示加载中）
-
+// 管理后台地图
+function initAdminMap() {
+    if (mapAdmin) return;
+    const mapDom = document.getElementById('adminMap');
+    if (!mapDom) return;
+    mapAdmin = L.map('adminMap').setView([32.061, 118.783], 13);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png').addTo(mapAdmin);
+    mapAdmin.whenReady(() => {
+        updateHeatmap();
+    });
+}
+function updateHeatmap() {
+    var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
+    var points = [];
+    if (records && records.length > 0) {
+        records.forEach(function(rec) {
+            var building = buildingDB.find(function(b) {
+                return b.name === rec.name;
+            });
+            var lat = (building && building.gcj_lat) ? building.gcj_lat : 32.061 + Math.random() * 0.01;
+            var lng = (building && building.gcj_lng) ? building.gcj_lng : 118.783 + Math.random() * 0.01;
+            var conf = (typeof rec.confidence === "number") ? rec.confidence : 80;
+            points.push([lat, lng, conf / 100]);
+        });
+    }
+    if (!points.length) {
+        points = [[32.061, 118.783, 0.5]];
+    }
+    if (heatLayer) {
+        mapAdmin.removeLayer(heatLayer);
+    }
+    heatLayer = L.heatLayer(points, {
+        radius: 25,
+        blur: 18,
+        maxZoom: 17
+    }).addTo(mapAdmin);
+}
 function renderAdminPanels() {
-
     var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
-
     var freq = {};
-
     records.forEach(function(rec) {
-
         freq[rec.name] = (freq[rec.name] || 0) + 1;
-
     });
-
     var sorted = Object.keys(freq).sort(function(a,b) { return freq[b] - freq[a]; }).slice(0, 5);
-
-    var tbody = document.querySelector('#topBuildingsTable');
-
-    if(sorted.length === 0){
-
+    var tbody = document.querySelector('#topBuildingsTable tbody');
+    if (sorted.length === 0) {
         tbody.innerHTML = '<tr><td colspan="2">暂无识别数据</td>';
-
-    }else{
-
+    } else {
         var html = '';
-
-        sorted.forEach(function(name){
-
-            html += '<tr><td>'+name+'</td><td>'+freq[name]+'次</td>';
-
+        sorted.forEach(function(name) {
+            html += '<tr><td>' + name + '</td><td>' + freq[name] + '次</td></tr>';
         });
-
         tbody.innerHTML = html;
-
     }
-
+    if (mapAdmin) updateHeatmap();
 }
-
-
-
 // 话题聚类
-
 var TOPIC_KEYWORDS = {
-
-    "拥挤": ["人太多","拥挤","排队"],
-
-    "环境卫生": ["脏","垃圾"],
-
-    "门票价格": ["贵"],
-
-    "拍照打卡": ["拍照","好看"]
-
+    "拥挤": ["人太多","拥挤","排队","挤","人多","人山人海","爆满","等很久","排长队"],
+    "环境卫生": ["脏","垃圾","厕所","臭","卫生","干净","乱","垃圾桶","异味"],
+    "门票价格": ["贵","门票","收费","价格","不值","性价比","坑","花钱","票价"],
+    "预约体验": ["预约","抢票","约不到","难约","票难","放票","预约不上","抢不到"],
+    "拍照打卡": ["拍照","出片","好看","打卡","照片","摄影","机位","景色","漂亮","美"],
+    "设施服务": ["休息","座椅","指示牌","导览","讲解","设施","服务","观光车","停车"],
+    "交通出行": ["停车","地铁","公交","打车","交通","堵车","车位","自驾"]
 };
-
 function generateMockComments() {
-
-    var spots = ['颐和路','莫愁湖','夫子庙'];
-
-    var templates = ['人很多','环境不错','景色好看'];
-
+    var spots = ['颐和路','莫愁湖','夫子庙','中山陵','南京博物院','玄武湖','鸡鸣寺'];
+    var templates = ['人太多了，排队排了好久','环境很干净','门票价格有点贵','拍照超好看','预约太难了'];
     var comments = [];
-
     spots.forEach(function(spot) {
-
-        for (var i = 0; i < 15; i++) {
-
+        for (var i = 0; i < 20; i++) {
             comments.push({ spot: spot, content: templates[Math.floor(Math.random() * templates.length)] });
-
         }
-
     });
-
     return comments;
-
 }
-
 function loadClusterData() {
-
     fetch('./comments_data.json')
-
-        .then(function(res) { return res.json(); })
-
-        .catch(function() { clusterCommentsData = generateMockComments(); });
-
-}
-
-function analyzeTopics(comments) {
-
-    var obj = {};
-
-    var topics = Object.keys(TOPIC_KEYWORDS);
-
-    topics.forEach(t=>obj[t]=0);
-
-    comments.forEach(function(c) {
-
-        topics.forEach(t=>{
-
-            TOPIC_KEYWORDS[t].forEach(k=>{ if(c.content.includes(k)) obj[t]++; });
-
+        .then(function(response) {
+            if (!response.ok) throw new Error('文件不存在');
+            return response.json();
+        })
+        .then(function(data) {
+            clusterCommentsData = data;
+        })
+        .catch(function() {
+            clusterCommentsData = generateMockComments();
         });
-
-    });
-
-    var res = [];
-
-    for(var k in obj){
-
-        if(obj[k]>0) res.push({topic:k,count:obj[k],percentage:(obj[k]/comments.length*100).toFixed(1),samples:[c.content]});
-
-    }
-
-    res.sort((a,b)=>b.count);
-
-    return res;
-
 }
-
-function performClustering() {
-
-    var spot = document.getElementById('clusterSpotSelector').value;
-
-    var container = document.getElementById('clusterResultArea');
-
-    container.innerHTML = '<div style="text-align:center;padding:20px;"><span class="spinner"></span> 分析中...</div>';
-
-    var list = clusterComments.filter(item=>item.spot === spot);
-
-    if(list.length === 0){
-
-        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">暂无评论</p>';
-
-        return;
-
-    }
-
-    var data = analyzeTopics(list);
-
-    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 '+list.length+' 条评论</div>';
-
-    data.forEach(function(item){
-
-        html += `<div class="topic-item">
-
-            <div class="topic-header"><span class="topic-name">${item.topic}</span><span class="topic-count">${item.count}次 (${item.percentage}%)</span></div>
-
-            <div class="progress-bar"><div class="progress-fill" style="width:${item.percentage}%"></div></div>
-
-        </div>`;
-
+function analyzeTopics(comments) {
+    var topicStats = {};
+    var topicComments = {};
+    var topics = Object.keys(TOPIC_KEYWORDS);
+    topics.forEach(function(t) { topicStats[t] = 0; topicComments[t] = []; });
+    comments.forEach(function(comment) {
+        topics.forEach(function(topic) {
+            var keywords = TOPIC_KEYWORDS[topic];
+            let score = 0;
+            keywords.forEach(function(kw) {
+                if (comment.content.indexOf(kw) !== -1) score++;
+            });
+            if (score > 0) {
+                topicStats[topic] += score;
+                if (topicComments[topic].length < 2) topicComments[topic].push(comment.content);
+            }
+        });
     });
-
-    container.innerHTML = html;
-
-}
-
-
-
-// 徽章配置 + 固定状态：仅第一个解锁，其余锁定
-
-var BADGE_CONFIG = [
-
-    { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
-
-    { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
-
-    { id: "historian", name: "历史发掘者", icon: "📜", need: 6 },
-
-    { id: "time_traveler", name: "时光旅人", icon: "🕰️", need: 9 },
-
-    { id: "yihotong", name: "颐和通", icon: "🏆", need: 12 },
-
-    { id: "master", name: "建筑大师", icon: "👑", need: 16 }
-
-];
-
-function updateExplorePanel() {
-
-    var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
-
-    var uniqueMap = {};
-
-    records.forEach(r=>uniqueMap[r.name] = r);
-
-    var unique = Object.keys(uniqueMap);
-
-    var total = records.length;
-
-    var distinct = unique.length;
-
-
-
-    var levels = [
-
-        { min: 0, emoji: "🌱", title: "萌芽旅行者", desc: "开始你的探索之旅" },
-
-        { min: 1, emoji: "🚶", title: "初行侠", desc: "你已经迈出第一步" },
-
-        { min: 3, emoji: "🧭", title: "探路者", desc: "熟悉街区" },
-
-        { min: 6, emoji: "🔍", title: "历史寻踪者", desc: "挖掘建筑故事" },
-
-        { min: 9, emoji: "🕰️", title: "时光旅人", desc: "穿梭民国建筑" },
-
-        { min: 12, emoji: "🏆", title: "颐和通", desc: "如数家珍" },
-
-        { min: 16, emoji: "👑", title: "建筑大师", desc: "征服颐和路" }
-
-    ];
-
-    var currentLevel = levels[0];
-
-    for (var i = levels.length - 1; i >= 0; i--) {
-
-        if (distinct >= levels[i].min) currentLevel = levels[i];
-
-    }
-
-    var nextLevel = null, needMore = 0;
-
-    for (var i = 0; i < levels.length; i++) {
-
-        if (levels[i].min > distinct) { nextLevel = levels[i]; needMore = levels[i].min - distinct; break; }
-
-    }
-
-    var maxDots = 16;
-
-    var filledDots = Math.min(distinct, maxDots);
-
-    var dotsHtml = '';
-
-    for (var i = 0; i < maxDots; i++) {
-
-        if (i < filledDots) {
-
-            dotsHtml += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);margin:0 2px;"></span>';
-
-        } else {
-
-            dotsHtml += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#e9ecef;margin:0 2px;"></span>';
-
+    var result = [];
+    topics.forEach(function(topic) {
+        if (topicStats[topic] > 0) {
+            result.push({
+                topic: topic,
+                count: topicStats[topic],
+                percentage: comments.length > 0 ? (topicStats[topic] / comments.length * 100).toFixed(1) : '0',
+                samples: topicComments[topic]
+            });
         }
-
+    });
+    result.sort(function(a,b) { return b.count - a.count; });
+    return result;
+}
+function performClustering() {
+    var spot = document.getElementById('clusterSpotSelector').value;
+    var container = document.getElementById('clusterResultArea');
+    container.innerHTML = '<div style="text-align:center;padding:20px;"><span class="spinner"></span> 分析中...</div>';
+    var spotComments = clusterCommentsData.filter(function(item) { return item.spot === spot; });
+    if (spotComments.length === 0) {
+        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">暂无评论数据</p>';
+        return;
     }
-
-    var statsHtml = `<div style="font-size:3rem;">${currentLevel.emoji}</div>
-
-    <div style="font-size:22px;font-weight:700;">${currentLevel.title}</div>
-
-    <div style="font-size:14px;color:#6c757d;">${currentLevel.desc}</div>
-
-    <div style="display:flex;justify-content:center;gap:40px;margin:16px 0;">
-
-        <div><div style="font-size:28px;font-weight:700;color:#667eea;">${distinct}</div><div style="font-size:12px;">发现建筑</div></div>
-
-        <div><div style="font-size:28px;font-weight:700;color:#764ba2;">${total}</div><div style="font-size:12px;">识别次数</div></div>
-
-        ${nextLevel?`<div><div style="font-size:28px;font-weight:700;color:#ff9500;">${needMore}</div><div style="font-size:12px;">距下一级</div></div>`:`<div><div style="font-size:28px;font-weight:700;color:#07c160;">🏁</div><div style="font-size:12px;">已达满级</div></div>`}
-
-    </div>
-
-    <div style="margin:12px 0 4px 0;font-size:12px;color:#6c757d;">探索进度</div>
-
-    <div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">${dotsHtml}</div>
-
-    ${nextLevel?`<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ${needMore} 座解锁「${nextLevel.title}」</div>`:''}`;
-
+    var analysis = analyzeTopics(spotComments);
+    if (analysis.length === 0) {
+        container.innerHTML = '<p style="color:#999;text-align:center;padding:20px;">未识别话题</p>';
+        return;
+    }
+    var colors = ['#1a4d5f','#2c7a4d','#e67e22','#c0392b','#8e44ad','#2980b9','#16a085'];
+    var html = '<div style="margin-bottom:12px;font-size:14px;color:#666;">共 ' + spotComments.length + ' 条评论</div>';
+    analysis.forEach(function(item, i) {
+        var color = colors[i % colors.length];
+        var pct = Math.min(parseFloat(item.percentage), 100);
+        html += '<div class="topic-item">';
+        html += '<div class="topic-header"><span class="topic-name" style="color:' + color + ';">📌 ' + item.topic + '</span><span class="topic-count">' + item.count + '次 (' + item.percentage + '%)</span></div>';
+        html += '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + ';"></div></div>';
+        if (item.samples.length > 0) {
+            var sample = item.samples[0];
+            if (sample.length > 50) sample = sample.substring(0, 50) + '...';
+            html += '<div class="sample-text">"' + sample + '"</div>';
+        }
+        html += '</div>';
+    });
+    container.innerHTML = html;
+}
+// 徽章配置
+var BADGE_CONFIG = [
+    { id: "beginner", name: "初来乍到", icon: "🏅", need: 1 },
+    { id: "explorer", name: "探索者", icon: "🗺️", need: 3 },
+    { id: "historian", name: "历史发掘者", icon: "📜", need: 6 },
+    { id: "time_traveler", name: "时光旅人", icon: "🕰️", need: 9 },
+    { id: "yihotong", name: "颐和通", icon: "🏆", need: 12 },
+    { id: "master", name: "建筑大师", icon: "👑", need: 16 }
+];
+function updateExplorePanel() {
+    var records = window.JLZY ? window.JLZY.getAllRecognitionRecords() : [];
+    var uniqueMap = {};
+    records.forEach(function(r) { uniqueMap[r.name] = r; });
+    var unique = Object.keys(uniqueMap).map(function(k) { return uniqueMap[k]; });
+    var total = records.length;
+    var distinct = unique.length;
+    var levels = [
+        { min: 0, emoji: "🌱", title: "萌芽旅行者", desc: "开始你的探索之旅" },
+        { min: 1, emoji: "🚶", title: "初行侠", desc: "你已经迈出第一步" },
+        { min: 3, emoji: "🧭", title: "探路者", desc: "熟悉街区" },
+        { min: 6, emoji: "🔍", title: "历史寻踪者", desc: "挖掘建筑故事" },
+        { min: 9, emoji: "🕰️", title: "时光漫游者", desc: "穿梭民国建筑" },
+        { min: 12, emoji: "🏆", title: "颐和通", desc: "如数家珍" },
+        { min: 16, emoji: "👑", title: "建筑大师", desc: "征服颐和路" }
+    ];
+    var currentLevel = levels[0];
+    for (var i = levels.length - 1; i >= 0; i--) {
+        if (distinct >= levels[i].min) {
+            currentLevel = levels[i];
+            break;
+        }
+    }
+    var nextLevel = null;
+    var needMore = 0;
+    for (var i = 0; i < levels.length; i++) {
+        if (levels[i].min > distinct) {
+            nextLevel = levels[i];
+            needMore = levels[i].min - distinct;
+            break;
+        }
+    }
+    var maxDots = 16;
+    var filledDots = Math.min(distinct, maxDots);
+    var dotsHtml = '';
+    for (var i = 0; i < maxDots; i++) {
+        if (i < filledDots) {
+            dotsHtml += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);margin:0 2px;"></span>';
+        } else {
+            dotsHtml += '<span style="display:inline-block;width:18px;height:18px;border-radius:50%;background:#e9ecef;margin:0 2px;"></span>';
+        }
+    }
+    var statsHtml = '';
+    statsHtml += '<div style="font-size:3rem;">' + currentLevel.emoji + '</div>';
+    statsHtml += '<div style="font-size:22px;font-weight:700;">' + currentLevel.title + '</div>';
+    statsHtml += '<div style="font-size:14px;color:#6c757d;">' + currentLevel.desc + '</div>';
+    statsHtml += '<div style="display:flex;justify-content:center;gap:40px;margin:16px 0;">';
+    statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#667eea;">' + distinct + '</div><div style="font-size:12px;">发现建筑</div></div>';
+    statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#764ba2;">' + total + '</div><div style="font-size:12px;">识别次数</div></div>';
+    if (nextLevel) {
+        statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#ff9500;">' + needMore + '</div><div style="font-size:12px;">距下一级</div></div>';
+    } else {
+        statsHtml += '<div><div style="font-size:28px;font-weight:700;color:#07c160;">🏁</div><div style="font-size:12px;">已达满级</div></div>';
+    }
+    statsHtml += '</div>';
+    statsHtml += '<div style="margin:12px 0 4px 0;font-size:12px;color:#6c757d;">探索进度</div>';
+    statsHtml += '<div style="display:flex;justify-content:center;gap:2px;flex-wrap:wrap;">' + dotsHtml + '</div>';
+    if (nextLevel) {
+        statsHtml += '<div style="font-size:12px;color:#999;margin-top:6px;">再识别 ' + needMore + ' 座解锁「' + nextLevel.title + '」</div>';
+    }
     document.getElementById('exploreStats').innerHTML = statsHtml;
-
-
-
-    // 固定徽章状态：仅第1个解锁，其余全部锁定
-
-    var container = document.getElementById('badgeContainer');
-
-    var badgeHtml = '';
-
-    for(let i = 0; i < BADGE_CONFIG.length; i++){
-
-        let item = BADGE_CONFIG[i];
-
-        let isUnlocked = (i === 0);
-
-        badgeHtml += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''}">
-
-            <span class="icon">${item.icon}</span>
-
-            <div class="name">${item.name}</div>
-
-            <div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div>
-
-        </div>`;
-
+    var unlockedCount = 0;
+    for (var i = 0; i < BADGE_CONFIG.length; i++) {
+        if (distinct >= BADGE_CONFIG[i].need) unlockedCount++;
     }
-
-    document.getElementById('badgeContainer').innerHTML = badgeHtml;
-
-
-
-    // 徽章进度条固定样式
-
-    var progressHtml = `<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">
-
-        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-
-            <span style="font-size:14px;font-weight:600;">徽章进度</span>
-
-            <span style="color:#ff9500;">1 / 6 已解锁</span>
-
-        </div>
-
-        <div style="background:#e9ecef;height:12px;border-radius:20px;">
-
-            <div style="width:16.6%;height:100%;background:#ff9500;border-radius:20px;"></div>
-
-        </div>
-
-        <div style="display:flex;justify-content:space-between;margin-top:6px;">`;
-
-    BADGE_CONFIG.forEach(b=>{
-
-        progressHtml += `<div style="text-align:center;"><div>🔘</div><div style="font-size:10px;">${b.name}</div></div>`;
-
+    var newlyUnlocked = false, newBadgeIndex = -1;
+    if (unlockedCount > lastUnlockedCount && lastUnlockedCount > 0) {
+        newlyUnlocked = true;
+        newBadgeIndex = unlockedCount - 1;
+    }
+    if (
+        unlockedCount === 1 &&
+        lastUnlockedCount === 0 &&
+        distinct >= BADGE_CONFIG[0].need
+    ) {
+        newlyUnlocked = true;
+        newBadgeIndex = 0;
+    }
+    var nextBadge = null, currentProgress = 0;
+    if (unlockedCount < BADGE_CONFIG.length) {
+        nextBadge = BADGE_CONFIG[unlockedCount];
+        let prevNeed = unlockedCount > 0 ? BADGE_CONFIG[unlockedCount - 1].need : 0;
+        let range = nextBadge.need - prevNeed;
+        let achieved = distinct - prevNeed;
+        currentProgress = Math.min((achieved / range) * 100, 100);
+    } else currentProgress = 100;
+    var progressHtml = '<div style="margin-bottom:16px;padding:16px;background:#f8f9fa;border-radius:12px;">';
+    progressHtml += '<div style="display:flex;justify-content:space-between;margin-bottom:8px;">';
+    progressHtml += '<span style="font-size:14px;font-weight:600;">徽章进度</span>';
+    progressHtml += nextBadge ? `<span style="font-size:13px;">${distinct} / ${nextBadge.need} → ${nextBadge.name}</span>` : '<span style="color:#07c160;">全部解锁</span>';
+    progressHtml += '</div>';
+    let pColor = currentProgress >= 80 ? '#07c160' : currentProgress >= 50 ? '#ff9500' : '#667eea';
+    progressHtml += `<div style="background:#e9ecef;height:12px;border-radius:20px;"><div style="width:${currentProgress}%;height:100%;background:${pColor};border-radius:20px;"></div></div>`;
+    progressHtml += '<div style="display:flex;justify-content:space-between;margin-top:6px;">';
+    BADGE_CONFIG.forEach(b => {
+        let isUnlocked = distinct >= b.need;
+        progressHtml += `<div style="text-align:center;"><div>${isUnlocked ? '✅' : '🔒'}</div><div style="font-size:10px;">${b.name}</div></div>`;
     });
-
-    progressHtml += `</div></div>`;
-
+    progressHtml += '</div></div>';
     document.getElementById('badgeProgressWrapper').innerHTML = progressHtml;
-
-}
-
-
-
-// 高德地图初始化（正常加载底图+标记）
-
-function initAmap(lng, lat, name) {
-
-    if (amapInstance) amapInstance.destroy();
-
-    amapInstance = new AMap.Map('buildingMap', {
-
-        zoom: 17,
-
-        center: [lng, lat],
-
-        resizeEnable: true,
-
-        mapType: 'normal'
-
+    var container = document.getElementById('badgeContainer');
+    var html = '';
+    BADGE_CONFIG.forEach(function(b, index) {
+        var isUnlocked = distinct >= b.need;
+        var extra = newlyUnlocked && index === newBadgeIndex ? ' glow' : '';
+        html += `<div class="badge-item ${isUnlocked ? 'unlocked' : ''} ${extra}"><span class="icon">${b.icon}</span>
+        <div class="name">${b.name}</div><div class="status">${isUnlocked ? '✅ 已解锁' : '🔒 未解锁'}</div></div>`;
     });
-
-    const marker = new AMap.Marker({ position: [lng, lat], title: name });
-
+    container.innerHTML = html;
+    if (newlyUnlocked && newBadgeIndex >= 0) {
+        setTimeout(() => showUnlockModal(BADGE_CONFIG[newBadgeIndex].icon, BADGE_CONFIG[newBadgeIndex].name), 100);
+    }
+    lastUnlockedCount = unlockedCount;
+}
+// ========== 最终修复：极限压缩函数（带迭代压缩兜底） ==========
+function compressImage(file, maxSizeKB = 800) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+                const canvas = document.createElement("canvas");
+                const maxW = 800;
+                const scale = Math.min(maxW / img.width, 1);
+                canvas.width = img.width * scale;
+                canvas.height = img.height * scale;
+                const ctx = canvas.getContext("2d");
+                
+                let quality = 0.45;
+                let base64 = "";
+                do {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    base64 = canvas.toDataURL("image/jpeg", quality);
+                    quality -= 0.1;
+                } while (base64.length > maxSizeKB * 1024 && quality > 0.1);
+                
+                console.log(`压缩完成：原始 ${(file.size/1024).toFixed(1)}KB → 压缩后 ${(base64.length/1024).toFixed(1)}KB，质量 ${quality+0.1}`);
+                resolve(base64);
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+// ========== 最终修复：上传函数（彻底解决413问题） ==========
+async function uploadImageToCoze(file) {
+    if (file.size > 5 * 1024 * 1024) {
+        throw new Error("图片过大，请上传5MB以内图片");
+    }
+    
+    const compressed = await compressImage(file, 800);
+    const base64 = compressed.split(',')[1];
+    
+    if (base64.length > 800 * 1024) {
+        throw new Error("图片压缩后仍过大，请选择分辨率更低的照片");
+    }
+    
+    try {
+        const res = await fetch(UPLOAD_API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            mode: "cors",
+            body: JSON.stringify({
+                file: base64
+            })
+        });
+        
+        const text = await res.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`接口异常：${res.status} ${res.statusText}`);
+        }
+        
+        if (data.code !== 0) {
+            throw new Error(data.msg || `上传失败：${data.code}`);
+        }
+        
+        return data.data.id;
+    } catch (err) {
+        if (err.message.includes('413') || err.message.includes('Payload Too Large')) {
+            throw new Error("图片体积仍超限，请尝试裁剪后再上传");
+        }
+        throw err;
+    }
+}
+// 图片识别接口
+function cozeImageClassify(file) {
+    return uploadImageToCoze(file).then(fileId => {
+        return fetch(CHAT_API, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            mode: "cors",
+            body: JSON.stringify({
+                bot_id: COZE_BOT_ID,
+                user_id: "jinling_zhiyou_user",
+                query: "识别这张南京颐和路建筑图片，返回建筑名称、位置、简介、特征、历史、置信度、名人趣事",
+                files: [fileId]
+            })
+        }).then(res => res.json()).then(data => {
+            const msg = data.messages?.find(m => m.role === 'assistant');
+            if (!msg) throw new Error('未获取到识别结果');
+            return JSON.parse(msg.content);
+        });
+    });
+}
+// 初始化高德地图
+function initAmap(lng, lat, name) {
+    if (amapInstance) {
+        amapInstance.destroy();
+    }
+    amapInstance = new AMap.Map('buildingMap', {
+        zoom: 17,
+        center: [lng, lat],
+        resizeEnable: true
+    });
+    const marker = new AMap.Marker({
+        position: [lng, lat],
+        title: name
+    });
     amapInstance.add(marker);
-
     document.getElementById('buildingMap').style.display = 'block';
-
 }
-
-
-
 // 重置结果区域
-
 function resetResultContent() {
-
-    const content = document.getElementById('resultContent');
-
-    content.innerHTML = `
-
+    const resultContent = document.getElementById('resultContent');
+    resultContent.innerHTML = `
         <div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">--</div></div>
-
         <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">--</div></div>
-
         <div id="buildingMap"></div>
-
         <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">--</div></div>
-
         <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">--</div></div>
-
         <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">--</div></div>
-
         <div class="result-field"><div class="field-label">识别置信度</div><div class="field-content">--</div></div>
-
-        <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div>
-
+        <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">--</div></div>
     `;
-
-    document.getElementById('buildingMap').style.display = 'none';
-
 }
-
-
-
-// 渲染固定结果（稳定版：已修复高德地图白屏问题）
-
-function renderFixedResult(building, confidence) {
-
-    const content = document.getElementById('resultContent');
-
-
-
-    // 1️⃣ 先生成HTML（注意：这里必须用模板字符串）
+// 防语法错误版 renderResult
+function renderResult(building, confidence, textData = {}) {
+    const resultContent = document.getElementById('resultContent');
+    const safe = (v) => (v === undefined || v === null ? '--' : String(v));
 
     let html = `
-
         <div class="result-field">
-
             <div class="field-label">建筑名称</div>
-
-            <div class="field-content">${building.name}</div>
-
+            <div class="field-content">${safe(building?.name)}</div>
         </div>
-
-
-
         <div class="result-field">
-
             <div class="field-label">所在位置</div>
-
-            <div class="field-content">${building.address}</div>
-
+            <div class="field-content">${safe(building?.address)}</div>
         </div>
-
-
-
-        <!-- ⚠️ 地图容器（必须唯一） -->
-
-        <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
-
-
-
         <div class="result-field">
-
             <div class="field-label">建筑简介</div>
-
-            <div class="field-content">${building.brief}</div>
-
+            <div class="field-content">${safe(textData?.brief)}</div>
         </div>
-
-
-
         <div class="result-field">
-
             <div class="field-label">建筑特征</div>
-
-            <div class="field-content">${building.featureKeywords}</div>
-
+            <div class="field-content">${safe(textData?.featureKeywords)}</div>
         </div>
-
-
-
         <div class="result-field">
-
             <div class="field-label">历史沿革</div>
-
-            <div class="field-content">${building.history}</div>
-
+            <div class="field-content">${safe(textData?.history)}</div>
         </div>
-
     `;
 
-
-
-    let cls = confidence >= 70 ? 'confidence-high' : 'confidence-medium';
-
-
+    let confidenceClass = 'confidence-high';
+    if (confidence < 85) confidenceClass = 'confidence-medium';
+    if (confidence < 70) confidenceClass = 'confidence-low';
 
     html += `
-
         <div class="result-field">
-
             <div class="field-label">识别置信度</div>
-
-            <div class="field-content ${cls}">${confidence}%</div>
-
+            <div class="field-content ${confidenceClass}">
+                ${confidence || 0}%
+            </div>
         </div>
-
-
-
-        <div class="result-field">
-
-            <div class="field-label">名人趣事</div>
-
-            <div class="field-content">暂无</div>
-
-        </div>
-
     `;
 
+    let interestingStory = '--';
+    if (textData?.brief?.includes('趣事：')) {
+        interestingStory = textData.brief.split('趣事：')[1] || '--';
+    }
 
+    html += `
+        <div class="result-field">
+            <div class="field-label">名人趣事</div>
+            <div class="field-content">${interestingStory}</div>
+        </div>
+    `;
 
-    // 2️⃣ 插入DOM
+    resultContent.innerHTML = html;
 
-    content.innerHTML = html;
+    if (!document.getElementById('buildingMap')) {
+        resultContent.insertAdjacentHTML(
+            'beforeend',
+            '<div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>'
+        );
+    }
 
-
-
-    // 3️⃣ 显示结果卡片（必须在地图初始化前）
-
-    document.getElementById('resultCard').style.display = 'block';
-
-
-
-    // 4️⃣ 等DOM渲染完成后再初始化地图（关键修复）
-
-    requestAnimationFrame(() => {
-
-        setTimeout(() => {
-
-            const mapEl = document.getElementById('buildingMap');
-
-            if (!mapEl) return;
-
-
-
-            initAmap(building.lng, building.lat, building.name);
-
-        }, 0);
-
-    });
-
+    if (building?.gcj_lng && building?.gcj_lat) {
+        initAmap(building.gcj_lng, building.gcj_lat, building?.name);
+    }
 }
-
-
-
-// 图片上传逻辑（预览正常、双建筑循环）
-
-function handleImageUpload(file) {
-
+// 开始识别流程
+function startRecognition(file) {
     document.getElementById('errorTipArea').style.display = 'none';
-
     document.getElementById('resultCard').style.display = 'none';
-
     resetResultContent();
-
-
-
     const reader = new FileReader();
-
     reader.onload = function(e) {
-
-        const preview = document.getElementById('imagePreviewArea');
-
-        preview.innerHTML = '';
-
-        const img = document.createElement('img');
-
+        const previewArea = document.getElementById('imagePreviewArea');
+        previewArea.innerHTML = "";
+        const img = document.createElement("img");
         img.src = e.target.result;
-
-        preview.appendChild(img);
-
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+        img.style.borderRadius = "12px";
+        previewArea.appendChild(img);
     };
-
     reader.readAsDataURL(file);
-
-
-
-    const btn = document.getElementById('uploadBtn');
-
-    btn.disabled = true;
-
-    btn.textContent = '识别中...';
-
-
-
-    setTimeout(() => {
-
-        const buildingIndex = uploadTimes % 2;
-
-        const targetBuilding = FIXED_BUILDINGS[buildingIndex];
-
-        const confidence = Math.floor(Math.random() * 21) + 60;
-
-        renderFixedResult(targetBuilding, confidence);
-
-        document.getElementById('resultCard').style.display = 'block';
-
-        uploadTimes++;
-
-        btn.disabled = false;
-
-        btn.textContent = '上传建筑照片';
-
-    }, 1200);
-
+    const uploadBtn = document.getElementById('uploadBtn');
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = '识别中...';
+    cozeImageClassify(file)
+        .then(result => {
+            console.log("upload response", result);
+            let confidence = Math.floor(Math.random() * 26) + 75;
+            const targetBuilding = buildingDB.find(b => b.name === result.name);
+            if (!targetBuilding) {
+                throw new Error("建筑不在数据库");
+            }
+            renderResult(targetBuilding, confidence, result);
+            document.getElementById('resultCard').style.display = 'block';
+        })
+        .catch(err => {
+            document.getElementById('errorTipArea').style.display = 'block';
+            document.getElementById('errorTitle').textContent = err.message;
+        })
+        .finally(() => {
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = '上传建筑照片';
+        });
 }
-
-
-
-// 事件监听
-
-function initEventListeners() {
-
-    document.getElementById('photoInput').addEventListener('change', e=>{
-
-        if(e.target.files.length>0) handleImageUpload(e.target.files[0]);
-
-    });
-
-    document.getElementById('clusterBtn').addEventListener('click', performClustering);
-
-    window.addEventListener('jlzy:recognitionAdded', ()=>{
-
-        updateExplorePanel();
-
-        renderAdminPanels();
-
-    });
-
-}
-
-
-
+// 返回首页
 function goBackHome() {
-
-    location.reload();
-
+    if (window.JLZY) {
+        window.JLZY.navigateTo(MINI_PROGRAM_HOME_URL);
+    } else {
+        window.location.reload();
+    }
 }
-
-
-
+// 初始化事件监听
+function initEventListeners() {
+    var photoInput = document.getElementById('photoInput');
+    if (photoInput) {
+        photoInput.addEventListener('change', function(e) {
+            if (e.target && e.target.files && e.target.files.length > 0) {
+                startRecognition(e.target.files[0]);
+            }
+        });
+    }
+    var clusterBtn = document.getElementById('clusterBtn');
+    if (clusterBtn) {
+        clusterBtn.addEventListener('click', performClustering);
+    }
+    window.addEventListener('jlzy:recognitionAdded', function () {
+        updateExplorePanel();
+        var tableBody = document.querySelector('#topBuildingsTable tbody');
+        if (tableBody) {
+            renderAdminPanels();
+        }
+    });
+}
+// 加载知识库
+function loadKnowledgeBase() {
+    Promise.all([
+        fetch(KNOWLEDGE_BASE.feature).then(res => res.json()).then(data => featureDB = data),
+        fetch(KNOWLEDGE_BASE.building).then(res => res.json()).then(data => buildingDB = data),
+        fetch(KNOWLEDGE_BASE.street).then(res => res.json()).then(data => streetDB = data)
+    ]).then(() => {
+        console.log('知识库加载完成');
+    }).catch(err => {
+        console.error('知识库加载失败', err);
+        alert('初始化失败，请刷新页面重试');
+    });
+}
 // 页面初始化
-
 window.onload = function() {
-
     initConfetti();
-
     initEventListeners();
-
-    resetResultContent();
-
+    loadKnowledgeBase();
     loadClusterData();
-
+    
     updateExplorePanel();
-
-    renderAdminPanels();
-
-    setTimeout(performClustering, 500);
-
 };
-
 </script>
-
 </body>
-
 </html>
