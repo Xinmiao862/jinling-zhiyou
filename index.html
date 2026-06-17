@@ -540,19 +540,70 @@ function resetResultContent() {
 }
 
 // 渲染固定结果
+// 渲染固定结果（稳定版：已修复高德地图白屏问题）
 function renderFixedResult(building, confidence) {
     const content = document.getElementById('resultContent');
-    let html = `<div class="result-field"><div class="field-label">建筑名称</div><div class="field-content">${building.name}</div></div>
-    <div class="result-field"><div class="field-label">所在位置</div><div class="field-content">${building.address}</div></div>
-    <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
-    <div class="result-field"><div class="field-label">建筑简介</div><div class="field-content">${building.brief}</div></div>
-    <div class="result-field"><div class="field-label">建筑特征</div><div class="field-content">${building.featureKeywords}</div></div>
-    <div class="result-field"><div class="field-label">历史沿革</div><div class="field-content">${building.history}</div>`;
-    let cls = confidence >=70 ? 'confidence-high' : 'confidence-medium';
-    html += `<div class="result-field"><div class="field-label">识别置信度</div><div class="field-content ${cls}">${confidence}%</div></div>
-    <div class="result-field"><div class="field-label">名人趣事</div><div class="field-content">暂无</div></div>`;
+
+    // 1️⃣ 先生成HTML（注意：这里必须用模板字符串）
+    let html = `
+        <div class="result-field">
+            <div class="field-label">建筑名称</div>
+            <div class="field-content">${building.name}</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">所在位置</div>
+            <div class="field-content">${building.address}</div>
+        </div>
+
+        <!-- ⚠️ 地图容器（必须唯一） -->
+        <div id="buildingMap" style="width:100%;height:280px;margin:10px 0 20px 0;border-radius:12px;"></div>
+
+        <div class="result-field">
+            <div class="field-label">建筑简介</div>
+            <div class="field-content">${building.brief}</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">建筑特征</div>
+            <div class="field-content">${building.featureKeywords}</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">历史沿革</div>
+            <div class="field-content">${building.history}</div>
+        </div>
+    `;
+
+    let cls = confidence >= 70 ? 'confidence-high' : 'confidence-medium';
+
+    html += `
+        <div class="result-field">
+            <div class="field-label">识别置信度</div>
+            <div class="field-content ${cls}">${confidence}%</div>
+        </div>
+
+        <div class="result-field">
+            <div class="field-label">名人趣事</div>
+            <div class="field-content">暂无</div>
+        </div>
+    `;
+
+    // 2️⃣ 插入DOM
     content.innerHTML = html;
-    initAmap(building.lng, building.lat, building.name);
+
+    // 3️⃣ 显示结果卡片（必须在地图初始化前）
+    document.getElementById('resultCard').style.display = 'block';
+
+    // 4️⃣ 等DOM渲染完成后再初始化地图（关键修复）
+    requestAnimationFrame(() => {
+        setTimeout(() => {
+            const mapEl = document.getElementById('buildingMap');
+            if (!mapEl) return;
+
+            initAmap(building.lng, building.lat, building.name);
+        }, 0);
+    });
 }
 
 // 图片上传逻辑（预览正常、双建筑循环）
